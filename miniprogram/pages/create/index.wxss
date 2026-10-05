@@ -1,0 +1,5 @@
+.form-panel { padding-top: 118rpx; }
+.form-clipboard { position: absolute; right: 42rpx; top: -36rpx; width: 106rpx; height: 126rpx; transform: rotate(7deg); }
+.form-paper { position: absolute; left: 10rpx; top: 24rpx; width: 82rpx; height: 96rpx; padding: 35rpx 14rpx 0; border: 5rpx solid #173149; border-radius: 10rpx; background: #fffdf8; }
+.form-paper view { height: 4rpx; margin-bottom: 12rpx; border-radius: 4rpx; background: #9aabc0; }
+.form-clip { position: absolute; z-index: 2; left: 30rpx; top: 10rpx; width: 46rpx; height: 30rpx; border: 5rpx solid #173149; border-radius: 7rpx; background: #ffc44f; }

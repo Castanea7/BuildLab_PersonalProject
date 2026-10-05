@@ -1,0 +1,9 @@
+<view class="simple-page">
+  <view class="simple-nav"><button class="back-button" aria-label="返回" bindtap="goBack"><view class="back-arrow"></view></button></view>
+  <text class="simple-title">我的账单</text>
+  <text class="simple-lead">这里只展示当前用户可见的示例账单。</text>
+  <view class="paper-panel mini-list">
+    <view class="mini-row"><view class="bill-icon bill-food"><view></view></view><view class="bill-copy"><text>森林晚餐</text><text class="mini-muted">10月3日 · 公共账单</text></view><text>¥86.00</text></view>
+    <view class="mini-row"><view class="bill-icon bill-ticket"><view></view></view><view class="bill-copy"><text>往返车票</text><text class="mini-muted">10月2日 · 公共账单</text></view><text>¥52.50</text></view>
+  </view>
+</view>

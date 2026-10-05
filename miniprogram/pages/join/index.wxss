@@ -1,0 +1,12 @@
+.invite-input { letter-spacing: 8rpx; text-transform: uppercase; }
+.join-panel { padding-top: 118rpx; }
+.form-ticket { position: absolute; right: 38rpx; top: -20rpx; width: 116rpx; height: 76rpx; border: 5rpx solid #173149; background: #fffdf8; transform: rotate(-13deg); }
+.form-ticket::before,
+.form-ticket::after { position: absolute; content: ""; top: 23rpx; width: 22rpx; height: 22rpx; border: 5rpx solid #173149; border-radius: 50%; background: #eaf8ff; }
+.form-ticket::before { left: -16rpx; }
+.form-ticket::after { right: -16rpx; }
+.form-heart { position: absolute; left: 46rpx; top: 24rpx; width: 20rpx; height: 20rpx; background: #ff846d; transform: rotate(45deg); }
+.form-heart::before,
+.form-heart::after { position: absolute; content: ""; width: 20rpx; height: 20rpx; border-radius: 50%; background: #ff846d; }
+.form-heart::before { left: -10rpx; }
+.form-heart::after { top: -10rpx; }

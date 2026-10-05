@@ -1,0 +1,9 @@
+<view class="simple-page">
+  <view class="simple-nav"><button class="back-button" aria-label="返回" bindtap="goBack"><view class="back-arrow"></view></button></view>
+  <text class="simple-title">我的</text>
+  <text class="simple-lead">个人资料与设置将在后续业务阶段接入。</text>
+  <view class="paper-panel profile-card">
+    <view class="avatar" aria-hidden="true"><view class="avatar-ear avatar-ear-left"></view><view class="avatar-ear avatar-ear-right"></view><view class="avatar-face"><view class="avatar-eye avatar-eye-left"></view><view class="avatar-eye avatar-eye-right"></view><view class="avatar-nose"></view></view></view>
+    <view><text class="profile-name">旅行中的我</text><text class="mini-muted">前端演示账号</text></view>
+  </view>
+</view>

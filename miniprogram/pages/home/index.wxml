@@ -1,0 +1,96 @@
+<view class="home-page">
+  <view class="hero">
+    <button class="menu-button" aria-label="打开菜单" bindtap="openMenu">
+      <view></view><view></view><view></view>
+    </button>
+    <view class="hero-copy">
+      <view class="brand-lockup">
+        <text class="brand-title">同行小本</text>
+        <view class="brand-rays" aria-hidden="true"><view></view><view></view><view></view></view>
+      </view>
+      <text class="hero-slogan">和朋友一起，\n把每一笔快乐都记下来！</text>
+      <view class="slogan-stroke" aria-hidden="true"></view>
+    </view>
+    <view class="sky-cloud" aria-hidden="true"></view>
+    <view class="sun-dot" aria-hidden="true"></view>
+    <image class="hero-illustration" src="/assets/hero-travelers-v2.png" mode="widthFix" aria-label="小狗和小猫一起查看旅行地图" />
+    <view class="hero-ground" aria-hidden="true">
+      <view class="ground-line"></view>
+      <view class="ground-flower flower-one"></view>
+      <view class="ground-flower flower-two"></view>
+      <view class="ground-flower flower-three"></view>
+    </view>
+  </view>
+
+  <view class="content">
+    <view class="section-bar">
+      <text class="section-title">进行中</text>
+      <button class="see-all" bindtap="navigate" data-url="/pages/trip/index?trip=forest">查看全部<text>›</text></button>
+    </view>
+
+    <view class="trip-card" bindtap="navigate" data-url="/pages/trip/index?trip=forest">
+      <view class="corner-flower flower-yellow" aria-hidden="true"></view>
+      <view class="trip-summary">
+        <view class="trip-main">
+          <text class="trip-name">森林周末</text>
+          <text class="trip-meta">10月2日 – 10月5日 · 4人</text>
+        </view>
+        <view class="payment">
+          <text class="payment-label">我需支付</text>
+          <view class="payment-value"><text>¥138.50</text><text class="payment-arrow">›</text></view>
+        </view>
+      </view>
+      <view class="card-actions">
+        <button class="action-button record-button" catchtap="navigate" data-url="/pages/trip/index?action=record">
+          <view class="pen-icon" aria-hidden="true"><view class="pen-cap"></view><view class="pen-body"></view><view class="pen-tip"></view></view>
+          <text>记一笔</text>
+        </button>
+        <button class="action-button bills-button" catchtap="navigate" data-url="/pages/bills/index">
+          <view class="receipt-icon" aria-hidden="true"><view></view><view></view><view></view></view>
+          <text>查看账单</text>
+        </button>
+      </view>
+    </view>
+
+    <view class="quick-grid">
+      <button class="quick-card quick-create" bindtap="navigate" data-url="/pages/create/index">
+        <view class="quick-copy"><text>创建行程</text><text class="quick-arrow">→</text></view>
+        <view class="clipboard-icon" aria-hidden="true">
+          <view class="clipboard-clip"></view>
+          <view class="clipboard-paper"><view></view><view></view><view></view></view>
+          <view class="icon-rays rays-yellow"><view></view><view></view></view>
+        </view>
+        <view class="scribble scribble-yellow" aria-hidden="true"></view>
+      </button>
+      <button class="quick-card quick-join" bindtap="navigate" data-url="/pages/join/index">
+        <view class="quick-copy"><text>加入行程</text><text class="quick-arrow">→</text></view>
+        <view class="ticket-icon" aria-hidden="true">
+          <view class="ticket-heart"></view><view class="ticket-fold"></view>
+          <view class="icon-rays rays-blue"><view></view><view></view></view>
+        </view>
+        <view class="scribble scribble-blue" aria-hidden="true"></view>
+      </button>
+    </view>
+
+    <view class="section-bar ended-bar">
+      <text class="section-title">已结束</text>
+      <button class="see-all" bindtap="navigate" data-url="/pages/report/index">查看全部<text>›</text></button>
+    </view>
+    <view class="ended-card" bindtap="navigate" data-url="/pages/report/index">
+      <view class="ended-copy">
+        <text class="ended-name">山城三日</text>
+        <text class="ended-meta">6月1日 – 6月3日 · 3人</text>
+      </view>
+      <button class="report-button" catchtap="navigate" data-url="/pages/report/index">查看我的报告<text>›</text></button>
+      <view class="corner-flower flower-blue" aria-hidden="true"></view>
+      <view class="ended-landscape" aria-hidden="true"><view class="hill"></view><view class="sun-rays"><view></view><view></view><view></view></view><view class="sprout sprout-one"></view><view class="sprout sprout-two"></view></view>
+    </view>
+
+    <view class="page-wish">
+      <text>祝你拥有神奇的一天！</text>
+      <view class="wish-underline" aria-hidden="true"></view>
+      <view class="wish-sun" aria-hidden="true"><view></view><view></view><view></view><view></view></view>
+    </view>
+  </view>
+
+</view>

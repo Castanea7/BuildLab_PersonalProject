@@ -1,0 +1,4 @@
+{
+  "desc": "同行小本前端原型",
+  "rules": [{ "action": "allow", "page": "*" }]
+}

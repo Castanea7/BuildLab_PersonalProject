@@ -1,0 +1,26 @@
+# Local/private project configuration
+project.private.config.json
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Dependencies and generated output
+node_modules/
+dist/
+build/
+coverage/
+.cache/
+
+# Logs and local debug output
+*.log
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Impeccable 本地 UI 检查产物
+.impeccable/

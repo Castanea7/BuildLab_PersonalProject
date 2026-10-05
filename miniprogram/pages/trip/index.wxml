@@ -1,0 +1,13 @@
+<view class="simple-page">
+  <view class="simple-nav"><button class="back-button" aria-label="返回" bindtap="goBack"><view class="back-arrow"></view></button></view>
+  <text class="simple-title">森林周末</text>
+  <text class="simple-lead">10月2日 – 10月5日 · 4位同行人</text>
+  <view class="paper-panel">
+    <view class="trip-state"><view class="state-dot"></view><text>进行中</text></view>
+    <view class="balance-block">
+      <text>当前我需支付</text><text class="balance">¥138.50</text>
+    </view>
+    <button class="primary-button" bindtap="record">{{showRecordHint ? '继续记一笔' : '记一笔'}}</button>
+    <button class="secondary-button" bindtap="goBills">查看我的账单</button>
+  </view>
+</view>

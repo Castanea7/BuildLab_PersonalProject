@@ -1,0 +1,11 @@
+<view class="simple-page">
+  <view class="simple-nav"><button class="back-button" aria-label="返回" bindtap="goBack"><view class="back-arrow"></view></button></view>
+  <text class="simple-title">加入朋友的行程</text>
+  <text class="simple-lead">输入朋友分享的 6 位邀请码，即可加入这次同行。</text>
+  <view class="paper-panel form-panel join-panel">
+    <view class="form-ticket" aria-hidden="true"><view class="form-heart"></view></view>
+    <text class="field-label">行程邀请码</text>
+    <input class="text-field invite-input" placeholder="例如：HAIFNG" maxlength="6" />
+    <button class="secondary-button" bindtap="submit">加入行程</button>
+  </view>
+</view>

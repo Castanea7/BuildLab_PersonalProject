@@ -1,0 +1,8 @@
+.mini-row { justify-content: flex-start; }
+.bill-icon { flex: 0 0 58rpx; display: flex; align-items: center; justify-content: center; width: 58rpx; height: 58rpx; margin-right: 20rpx; border-radius: 18rpx; background: #ffdc91; }
+.bill-icon view { width: 22rpx; height: 22rpx; border: 4rpx solid #173149; border-radius: 50%; }
+.bill-ticket { background: #cfeaff; transform: rotate(-3deg); }
+.bill-ticket view { border-radius: 3rpx; transform: rotate(45deg); }
+.bill-copy { flex: 1; min-width: 0; }
+.bill-copy text { display: block; }
+.mini-row > text { margin-left: 18rpx; font-family: sans-serif; font-size: 30rpx; font-weight: 800; }

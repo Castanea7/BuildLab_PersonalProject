@@ -1,0 +1,18 @@
+{
+  "pages": [
+    "pages/home/index",
+    "pages/trip/index",
+    "pages/create/index",
+    "pages/join/index",
+    "pages/bills/index",
+    "pages/report/index",
+    "pages/profile/index"
+  ],
+  "window": {
+    "navigationStyle": "custom",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#f8f3e8",
+    "backgroundTextStyle": "dark"
+  },
+  "sitemapLocation": "sitemap.json"
+}
