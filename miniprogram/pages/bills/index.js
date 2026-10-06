@@ -4,17 +4,26 @@ const categories = ["餐饮", "住宿", "门票", "交通", "购物", "其他"];
 const checkinCategories = ["住宿", "餐饮", "门票"];
 
 Page({
-  data: { trip: null, bills: [], members: [], displayMembers: [], selectedMembers: [], memberText: "", categories, categoryIndex: 0, form: {}, error: "", editingId: "", showForm: false, showCheckin: false, pendingCheckinBill: null, checkinLocation: "" },
-  onLoad(options) {
-    const trip = services.getTrip(options.trip).data;
+  data: { trip: null, bills: [], members: [], displayMembers: [], selectedMembers: [], memberText: "", currentUserId: "user-me", categories, categoryIndex: 0, form: {}, error: "", editingId: "", showForm: false, showCheckin: false, pendingCheckinBill: null, checkinLocation: "", cloudMode: false },
+  async onLoad(options) {
+    const tripPromise = Promise.resolve(services.getTrip(options.trip));
+    const userPromise = services.isCloudMode() ? Promise.resolve(services.bootstrapUserCloud()) : Promise.resolve(services.bootstrapUser());
+    const [tripResult, userResult] = await Promise.all([tripPromise, userPromise]);
+    const trip = tripResult.data;
+    const currentUserId = userResult.ok && userResult.data && userResult.data.id ? userResult.data.id : "user-me";
     this.tripId = options.trip || (trip && trip.id);
-    const members = trip ? trip.members.filter((member) => member.status === "active").map((member) => ({ ...member, displayName: member.id === "user-me" ? "我" : member.name })) : [];
-    this.setData({ trip, members, showForm: false });
-    this.refresh();
+    const members = trip ? trip.members.filter((member) => member.status === "active").map((member) => ({ ...member, displayName: member.id === currentUserId ? "我" : member.name })) : [];
+    this.setData({ trip, members, currentUserId, showForm: false, cloudMode: services.isCloudMode() });
+    await this.refresh();
     if (options.action === "create") this.openCreate();
     if (options.action === "edit" && options.bill) this.openEdit(options.bill);
   },
-  refresh() { this.setData({ bills: services.listBills(this.tripId).data || [] }); },
+  async refresh() {
+    const result = await Promise.resolve(services.listBills(this.tripId));
+    if (!result.ok) { this.setData({ bills: [], error: result.error.message }); return result; }
+    this.setData({ bills: result.data || [], error: "" });
+    return result;
+  },
   getCategoryIndex(category) { const index = categories.indexOf(category); return index < 0 ? 0 : index; },
   buildUsageText(form) {
     if (!form.usageStartDate) return "";
@@ -31,7 +40,8 @@ Page({
   },
   openCreate() {
     const today = this.data.trip ? this.data.trip.startDate : "";
-    const form = { name: "", amount: "", category: "餐饮", privacy: "public", splitMode: "even", payerId: "user-me", memberIds: this.data.members.map((member) => member.id), customSharesYuan: {}, paymentDate: today, usageDateMode: "single", usageStartDate: today, usageEndDate: today, usageText: today };
+    const currentUserId = this.data.currentUserId || "user-me";
+    const form = { name: "", amount: "", category: "餐饮", privacy: "public", splitMode: "even", payerId: currentUserId, memberIds: this.data.members.map((member) => member.id), customSharesYuan: {}, paymentDate: today, usageDateMode: "single", usageStartDate: today, usageEndDate: today, usageText: today };
     this.setData({ showForm: true, editingId: "", error: "", categoryIndex: 0, form });
     this.syncMemberDisplay(form.memberIds, form.splitMode);
   },
@@ -88,14 +98,14 @@ Page({
     if (form.splitMode === "custom" && (form.memberIds || []).some((id) => !String((form.customSharesYuan || {})[id] || "").trim())) return "请填写每位成员的分摊金额";
     return "";
   },
-  submitForm() {
+  async submitForm() {
     const formError = this.validateForm();
     if (formError) { this.setData({ error: formError }); return; }
     const input = { ...this.data.form, tripId: this.tripId };
-    const result = this.data.editingId ? services.updateBill(this.data.editingId, { ...input, expectedVersion: this.data.form.version }) : services.createBill(input);
+    const result = this.data.editingId ? await Promise.resolve(services.updateBill(this.data.editingId, { ...input, expectedVersion: this.data.form.version })) : await Promise.resolve(services.createBill(input));
     if (!result.ok) { this.setData({ error: result.error.message }); return; }
     this.refresh();
-    if (checkinCategories.includes(input.category)) {
+    if (checkinCategories.includes(input.category) && !services.isCloudMode()) {
       this.setData({ showForm: false, error: "", editingId: "", pendingCheckinBill: result.data, checkinLocation: "", showCheckin: true });
       return;
     }
@@ -112,8 +122,8 @@ Page({
   },
   skipCheckin() { this.setData({ showCheckin: false, pendingCheckinBill: null, checkinLocation: "", error: "" }); this.refresh(); },
   openEdit(billId) { this.editBill({ currentTarget: { dataset: { id: billId } } }); },
-  editBill(event) {
-    const bill = services.getBill(event.currentTarget.dataset.id);
+  async editBill(event) {
+    const bill = await Promise.resolve(services.getBill(event.currentTarget.dataset.id));
     if (!bill.ok) { this.setData({ error: bill.error.message }); return; }
     const customSharesYuan = {};
     Object.keys(bill.data.shares || {}).forEach((id) => { customSharesYuan[id] = (bill.data.shares[id] / 100).toFixed(2); });
@@ -122,16 +132,17 @@ Page({
     this.syncMemberDisplay(form.memberIds, form.splitMode);
   },
   deleteBill(event) {
+    const bill = this.data.bills.find((item) => item.id === event.currentTarget.dataset.id);
     wx.showModal({
       title: "删除账单",
       content: "删除后无法恢复，确定要删除这笔账单吗？",
       confirmText: "删除",
       cancelText: "取消",
-      success: ({ confirm }) => {
+      success: async ({ confirm }) => {
         if (!confirm) return;
-        const result = services.deleteBill(event.currentTarget.dataset.id);
+        const result = await Promise.resolve(services.deleteBill(event.currentTarget.dataset.id, { expectedVersion: bill && bill.version }));
         if (!result.ok) { this.setData({ error: result.error.message }); return; }
-        this.refresh();
+        await this.refresh();
       }
     });
   },

@@ -1,15 +1,74 @@
 const services = require("../../services/index");
 
+function formatCents(value) {
+  return "¥" + (Number(value || 0) / 100).toFixed(2);
+}
+
+function decorateTrip(trip, bills) {
+  if (!trip) return trip;
+  const nextBills = bills || trip.bills || [];
+  const totalCents = nextBills.reduce((sum, bill) => sum + Number(bill.totalCents || 0), 0);
+  return { ...trip, bills: nextBills, totalExpenseText: formatCents(totalCents) };
+}
+
 Page({
-  onLoad(options) {
-    const trip = services.getTrip(options.trip).data;
+  data: { trip: null, currentUserId: "", isOwner: false, showRecordHint: false, cloudMode: false, shareInfo: null, loading: true, loadError: "" },
+  async onLoad(options = {}) {
+    if (services.isCloudMode()) {
+      const [userResult, tripResult, billsResult] = await Promise.all([
+        Promise.resolve(services.bootstrapUserCloud()),
+        Promise.resolve(services.getTrip(options.trip)),
+        Promise.resolve(services.listBills(options.trip))
+      ]);
+      if (!userResult.ok) { this.setData({ loading: false, loadError: userResult.error.message }); return; }
+      if (!tripResult.ok || !tripResult.data) { this.setData({ loading: false, loadError: tripResult.error ? tripResult.error.message : "行程不存在" }); return; }
+      const trip = decorateTrip(tripResult.data, billsResult.ok ? billsResult.data : []);
+      this.setData({
+        trip,
+        currentUserId: userResult.data.id,
+        isOwner: tripResult.data.ownerId === userResult.data.id,
+        showRecordHint: options.action === "record",
+        cloudMode: true,
+        shareInfo: null,
+        loading: false,
+        loadError: ""
+      });
+      await this.prepareShare();
+      return;
+    }
+    const tripResult = services.getTrip(options.trip);
+    const trip = tripResult.data;
     const state = services.getMockState().data;
-    this.setData({ trip, currentUserId: state.currentUserId, isOwner: state.role === "owner", showRecordHint: options.action === "record" });
+    this.setData({ trip, currentUserId: state.currentUserId, isOwner: state.role === "owner", showRecordHint: options.action === "record", cloudMode: false, shareInfo: null, loading: false, loadError: trip ? "" : "行程不存在" });
+    await this.prepareShare();
   },
-  onShow() {
+  async onShow() {
     if (!this.data.trip) return;
-    const refreshed = services.getTrip(this.data.trip.id).data;
-    if (refreshed) this.setData({ trip: refreshed });
+    const [tripResult, billsResult] = await Promise.all([
+      Promise.resolve(services.getTrip(this.data.trip.id)),
+      services.isCloudMode() ? Promise.resolve(services.listBills(this.data.trip.id)) : Promise.resolve({ ok: true, data: this.data.trip.bills || [] })
+    ]);
+    if (tripResult.ok && tripResult.data) {
+      const trip = decorateTrip(tripResult.data, billsResult.ok ? billsResult.data : []);
+      this.setData({ trip, isOwner: trip.ownerId === this.data.currentUserId });
+      await this.prepareShare();
+    }
+  },
+  async prepareShare() {
+    if (!this.data.trip || this.data.trip.status !== "进行中") return;
+    const result = await Promise.resolve(services.getInvite(this.data.trip.id));
+    if (!result.ok || !result.data) return;
+    const path = result.data.sharePath || "/pages/join/index?inviteCode=" + result.data.code;
+    this.setData({ shareInfo: { code: result.data.code, path } });
+  },
+  onShareAppMessage() {
+    const trip = this.data.trip;
+    const shareInfo = this.data.shareInfo;
+    const code = shareInfo && shareInfo.code || trip && trip.inviteCode;
+    return {
+      title: trip ? "邀请你加入「" + trip.name + "」" : "邀请你加入同行行程",
+      path: shareInfo ? shareInfo.path : code ? "/pages/join/index?inviteCode=" + encodeURIComponent(code) : "/pages/join/index"
+    };
   },
   goBack() {
     if (getCurrentPages().length > 1) {
@@ -18,39 +77,44 @@ Page({
     }
     wx.reLaunch({ url: "/pages/home/index" });
   },
-  record() { wx.navigateTo({ url: "/pages/bills/index?trip=" + this.data.trip.id + "&action=create" }); },
+  record() {
+    wx.navigateTo({ url: "/pages/bills/index?trip=" + this.data.trip.id + "&action=create" });
+  },
   editBill(event) { wx.navigateTo({ url: "/pages/bills/index?trip=" + this.data.trip.id + "&action=edit&bill=" + event.currentTarget.dataset.id }); },
-  viewBill(event) {
-    const result = services.getBill(event.currentTarget.dataset.id);
+  async viewBill(event) {
+    const result = await Promise.resolve(services.getBill(event.currentTarget.dataset.id));
     if (!result.ok) { wx.showToast({ title: result.error.message, icon: "none" }); return; }
     wx.showModal({ title: result.data.name, content: "总金额 " + result.data.amountText + "\n我承担 " + result.data.shareText, showCancel: false, confirmText: "知道了" });
   },
-  deleteBill(event) {
+  async deleteBill(event) {
+    const bill = (this.data.trip.bills || []).find((item) => item.id === event.currentTarget.dataset.id);
     wx.showModal({
       title: "删除账单",
       content: "删除后无法恢复，确定要删除这笔账单吗？",
       confirmText: "删除",
       cancelText: "取消",
-      success: ({ confirm }) => {
+      success: async ({ confirm }) => {
         if (!confirm) return;
-        const result = services.deleteBill(event.currentTarget.dataset.id);
+        const result = await Promise.resolve(services.deleteBill(event.currentTarget.dataset.id, { expectedVersion: bill && bill.version }));
         if (!result.ok) { wx.showToast({ title: result.error.message, icon: "none" }); return; }
-        const refreshed = services.getTrip(this.data.trip.id).data;
-        this.setData({ trip: refreshed });
+        const [tripResult, billsResult] = await Promise.all([Promise.resolve(services.getTrip(this.data.trip.id)), Promise.resolve(services.listBills(this.data.trip.id))]);
+        if (tripResult.ok && tripResult.data) this.setData({ trip: decorateTrip(tripResult.data, billsResult.ok ? billsResult.data : []) });
         wx.showToast({ title: "账单已删除", icon: "none" });
       }
     });
   },
-  goSettlement() { wx.navigateTo({ url: "/pages/settlement/index?trip=" + this.data.trip.id }); },
+  goSettlement() {
+    wx.navigateTo({ url: "/pages/settlement/index?trip=" + this.data.trip.id });
+  },
   endTrip() {
     wx.showModal({
       title: "结束行程",
       content: "结束后将无法继续记账，且不能恢复。确定结束行程吗？",
       confirmText: "结束行程",
       cancelText: "取消",
-      success: ({ confirm }) => {
+      success: async ({ confirm }) => {
         if (!confirm) return;
-        const result = services.endTrip(this.data.trip.id);
+        const result = await Promise.resolve(services.endTrip(this.data.trip.id));
         if (!result.ok) { wx.showToast({ title: result.error.message, icon: "none" }); return; }
         this.setData({ trip: result.data });
         wx.showToast({ title: "行程已结束", icon: "none" });
@@ -64,12 +128,12 @@ Page({
       content: `移除${member ? member.name : "该成员"}后，对方将不能新增或修改本行程数据。确定移除吗？`,
       confirmText: "移除",
       cancelText: "取消",
-      success: ({ confirm }) => {
+      success: async ({ confirm }) => {
         if (!confirm) return;
-        const result = services.removeMember(this.data.trip.id, event.currentTarget.dataset.id);
+        const result = await Promise.resolve(services.removeMember(this.data.trip.id, event.currentTarget.dataset.id));
         if (!result.ok) { wx.showToast({ title: result.error.message, icon: "none" }); return; }
-        const refreshed = services.getTrip(this.data.trip.id).data;
-        this.setData({ trip: refreshed });
+        const refreshed = await Promise.resolve(services.getTrip(this.data.trip.id));
+        if (refreshed.ok && refreshed.data) this.setData({ trip: refreshed.data });
         wx.showToast({ title: "成员已移除", icon: "none" });
       }
     });

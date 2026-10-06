@@ -1,6 +1,7 @@
 {
   "pages": [
     "pages/home/index",
+    "pages/debt/index",
     "pages/trips/index",
     "pages/trip/index",
     "pages/create/index",
@@ -10,6 +11,7 @@
     "pages/report/index",
     "pages/profile/index"
   ],
+  "lazyCodeLoading": "requiredComponents",
   "window": {
     "navigationStyle": "custom",
     "navigationBarTextStyle": "black",

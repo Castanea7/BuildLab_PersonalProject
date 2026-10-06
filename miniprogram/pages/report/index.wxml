@@ -43,12 +43,14 @@
   <view class="report-card category-card">
     <view class="card-heading"><view class="flower-icon" aria-hidden="true"><view></view></view><text class="card-title">类目占比</text><view class="cat-spark" aria-hidden="true"></view></view>
     <view wx:if="{{report.categories.length}}" class="category-content">
-      <view class="category-total"><text>{{report.totalText}}</text><text>我的花销</text></view>
+      <view class="category-chart-wrap">
+        <canvas type="2d" id="category-pie" class="category-pie" />
+        <view class="category-center"><text>{{report.totalText}}</text><text>我的花销</text></view>
+      </view>
       <view class="category-list">
         <view class="category-row" wx:for="{{report.categories}}" wx:key="category">
           <view class="category-label"><view class="category-dot" style="background: {{item.color}}"></view><text>{{item.category}}</text></view>
-          <view class="category-meter"><view style="width: {{item.barWidth}}; background: {{item.color}}"></view></view>
-          <text class="category-ratio">{{item.ratioText}}</text>
+          <view class="category-values"><text class="category-ratio">{{item.ratioText}}</text><text class="category-amount">{{item.amountText}}</text></view>
         </view>
       </view>
     </view>

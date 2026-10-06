@@ -3,6 +3,7 @@
   "compileType": "miniprogram",
   "libVersion": "3.9.2",
   "miniprogramRoot": "miniprogram/",
+  "cloudfunctionRoot": "cloudfunctions/",
   "projectname": "同行小本-前端原型",
   "setting": {
     "es6": true,

@@ -8,6 +8,8 @@
   font-size: 27rpx;
   font-weight: 900;
 }
+.trip-loading-page { display: flex; flex-direction: column; }
+.trip-loading-copy { display: flex; flex: 1; flex-direction: column; justify-content: center; padding-bottom: 160rpx; }
 .invite-block { display: flex; align-items: center; margin-top: 34rpx; padding: 24rpx; border-radius: 22rpx; background: #fff3cf; }
 .invite-label { color: #71839a; font-size: 24rpx; }
 .invite-code { margin-left: auto; color: #173149; font-family: sans-serif; font-size: 42rpx; font-weight: 900; letter-spacing: 8rpx; }

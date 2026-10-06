@@ -4,24 +4,56 @@ Page({
   onLoad() {
     this.refreshHome();
   },
-  refreshHome() {
+  onShareAppMessage() {
+    return {
+      title: "和朋友一起，把每一笔快乐都记下来！",
+      path: "/pages/home/index"
+    };
+  },
+  async refreshHome() {
+    if (services.isCloudMode()) {
+      const result = await Promise.resolve(services.listTrips());
+      if (!result.ok) { wx.showToast({ title: result.error.message, icon: "none" }); return; }
+      const trips = result.data || [];
+      const sortByRecentOperation = (left, right) => {
+        const leftTime = Date.parse(left.lastOperatedAt || left.updatedAt || left.createdAt || "") || 0;
+        const rightTime = Date.parse(right.lastOperatedAt || right.updatedAt || right.createdAt || "") || 0;
+        return rightTime - leftTime;
+      };
+      const activeTrips = trips.filter((trip) => trip.status === "进行中").sort(sortByRecentOperation);
+      const endedTrips = trips.filter((trip) => trip.status === "已结束").sort(sortByRecentOperation);
+      this.setData({ state: { activeTrips, endedTrips, scenarioId: "" }, currentTrip: activeTrips[0] || null, activeTrip: activeTrips[0] || null, endedTrip: endedTrips[0] || null, cloudMode: true, isDevelopment: services.isDevelopment(), scenarios: [] });
+      return;
+    }
     const state = services.getMockState().data;
-    this.setData({ state, currentTrip: state.activeTrips[0] || null, activeTrip: state.activeTrips[0] || null, endedTrip: state.endedTrips[0] || null, isDevelopment: services.isDevelopment(), scenarios: services.listMockScenarios().data });
+    this.setData({ state, currentTrip: state.activeTrips[0] || null, activeTrip: state.activeTrips[0] || null, endedTrip: state.endedTrips[0] || null, cloudMode: false, isDevelopment: services.isDevelopment(), scenarios: services.listMockScenarios().data });
   },
   openMenu() {
-    const menuItems = ["使用帮助", "关于同行小本"];
-    if (services.isDevelopment()) menuItems.push("开发设置", "重置 Mock 数据");
+    const isDevelopment = services.isDevelopment();
+    const menuItems = ["欠款怎么算", "关于同行小本"];
+    if (isDevelopment) {
+      menuItems.push("开发设置", services.isCloudMode() ? "切换到 Mock 演示" : "切换到 Cloud 行程", "重置 Mock 数据");
+    }
     wx.showActionSheet({
       itemList: menuItems,
       success: ({ tapIndex }) => {
-        if (tapIndex === 2) { this.openMockSettings(); return; }
-        if (tapIndex === 3) { this.resetMockData(); return; }
+        if (tapIndex === 0) { this.openDebtHelp(); return; }
+        if (tapIndex === 1 && !isDevelopment) {
+          wx.showToast({ title: "同行小本 · 前端原型", icon: "none" });
+          return;
+        }
+        if (tapIndex === 2 && isDevelopment) { this.openMockSettings(); return; }
+        if (tapIndex === 3 && isDevelopment) { this.switchServiceMode(); return; }
+        if (tapIndex === 4 && isDevelopment) { this.resetMockData(); return; }
         wx.showToast({
-          title: tapIndex === 0 ? "请从首页选择一个行程开始" : "同行小本 · 前端原型",
+          title: "同行小本 · 前端原型",
           icon: "none"
         });
       }
     });
+  },
+  openDebtHelp() {
+    wx.navigateTo({ url: "/pages/debt/index" });
   },
   openMockSettings() {
     this.setData({ showScenarioPicker: true });
@@ -52,17 +84,37 @@ Page({
       }
     });
   },
+  switchServiceMode() {
+    const nextMode = services.isCloudMode() ? "mock" : "cloud";
+    services.setServiceMode(nextMode);
+    wx.reLaunch({ url: "/pages/home/index" });
+  },
 
   navigate(event) {
     const { url } = event.currentTarget.dataset;
     if (url) wx.navigateTo({ url });
   },
 
-  goTrip(event) { const id = event && event.currentTarget.dataset.tripId; const trip = id ? services.getTrip(id).data : this.data.currentTrip; if (trip) wx.navigateTo({ url: "/pages/trip/index?trip=" + trip.id }); },
+  goTrip(event) {
+    const id = event && event.currentTarget.dataset.tripId;
+    const trip = id ? { id } : this.data.currentTrip;
+    if (trip && trip.id) wx.navigateTo({ url: "/pages/trip/index?trip=" + trip.id });
+  },
   openTripList(event) { wx.navigateTo({ url: "/pages/trips/index?mode=" + event.currentTarget.dataset.mode }); },
-  goSettlement(event) { const id = event && event.currentTarget.dataset.tripId; if (id) wx.navigateTo({ url: "/pages/settlement/index?trip=" + id }); },
-  recordTrip(event) { const id = event && event.currentTarget.dataset.tripId; const trip = id ? services.getTrip(id).data : this.data.currentTrip; if (trip) wx.navigateTo({ url: "/pages/bills/index?trip=" + trip.id + "&action=create" }); },
-  openReport(event) { const id = event && event.currentTarget.dataset.tripId; const trip = id ? services.getTrip(id).data : this.data.endedTrip; if (trip) wx.navigateTo({ url: "/pages/report/index?trip=" + trip.id }); },
+  goSettlement(event) {
+    const id = event && event.currentTarget.dataset.tripId;
+    if (id) wx.navigateTo({ url: "/pages/settlement/index?trip=" + id });
+  },
+  recordTrip(event) {
+    const id = event && event.currentTarget.dataset.tripId;
+    const trip = id ? { id } : this.data.currentTrip;
+    if (trip && trip.id) wx.navigateTo({ url: "/pages/bills/index?trip=" + trip.id + "&action=create" });
+  },
+  openReport(event) {
+    const id = event && event.currentTarget.dataset.tripId;
+    const trip = id ? { id } : this.data.endedTrip;
+    if (trip && trip.id) wx.navigateTo({ url: "/pages/report/index?trip=" + trip.id });
+  },
 
   toTop() {
     wx.pageScrollTo({ scrollTop: 0, duration: 240 });

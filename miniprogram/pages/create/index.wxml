@@ -27,6 +27,7 @@
         <text class="created-code">{{createdTrip.inviteCode}}</text>
         <button class="copy-button" bindtap="copyInvite">复制邀请码</button>
       </view>
+      <button class="invite-created-button" open-type="share">邀请同伴</button>
       <button class="close-created-button" bindtap="closeCreatedModal">关闭</button>
     </view>
   </view>

@@ -277,6 +277,7 @@
 .scribble-yellow { border-color: #ffc44f; }
 .scribble-blue { border-color: #7fc5f7; }
 
+
 .ended-bar { margin-top: 48rpx; }
 .ended-card {
   display: flex;

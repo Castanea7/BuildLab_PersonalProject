@@ -6,7 +6,7 @@
     <view class="mini-row bill-item" wx:for="{{bills}}" wx:key="id">
       <view class="bill-icon bill-{{item.category === '交通' ? 'ticket' : 'food'}}"><view></view></view>
       <view class="bill-copy"><text>{{item.name}}</text><text class="mini-muted">{{item.paymentDate}} · {{item.privacy === 'private' ? '私密' : '公共'}} · 我承担 {{item.shareText}}</text><text class="mini-muted">{{item.lockedText}}</text></view>
-      <view class="bill-actions"><text>{{item.amountText}}</text><button wx:if="{{!item.locked && item.createdBy === 'user-me'}}" data-id="{{item.id}}" bindtap="editBill">编辑</button><button wx:if="{{!item.locked && item.createdBy === 'user-me'}}" data-id="{{item.id}}" bindtap="deleteBill">删除</button></view>
+      <view class="bill-actions"><text>{{item.amountText}}</text><button wx:if="{{item.canEdit}}" data-id="{{item.id}}" bindtap="editBill">编辑</button><button wx:if="{{item.canEdit}}" data-id="{{item.id}}" bindtap="deleteBill">删除</button></view>
     </view>
     <text class="empty-bills" wx:if="{{!bills.length}}">暂无可见账单</text>
   </view>

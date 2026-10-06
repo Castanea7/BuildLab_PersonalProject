@@ -1,0 +1,81 @@
+<scroll-view class="debt-page" scroll-y="true" enhanced="true" show-scrollbar="false">
+  <view class="debt-topbar">
+    <button class="debt-back" aria-label="返回" bindtap="goBack"><view class="back-arrow"></view></button>
+    <view class="mini-menu" aria-hidden="true"><view></view><view></view><view></view></view>
+    <view class="mini-dot" aria-hidden="true"></view>
+  </view>
+
+  <view class="debt-hero">
+    <view class="hero-cloud hero-cloud-left" aria-hidden="true"></view>
+    <view class="hero-cloud hero-cloud-right" aria-hidden="true"></view>
+    <view class="hero-sun" aria-hidden="true"></view>
+    <text class="debt-title">欠款怎么算？</text>
+    <text class="debt-subtitle">搞清楚每一笔钱，
+和朋友一起轻松结账！</text>
+    <view class="title-stroke" aria-hidden="true"></view>
+    <image class="debt-hero-art" src="/assets/hero-travelers-v2.png" mode="widthFix" aria-label="小狗和小猫一起查看旅行地图" />
+  </view>
+
+  <view class="debt-content">
+    <view class="debt-card card-one">
+      <view class="section-heading"><view class="number-badge badge-yellow">1</view><text>欠款是怎么算的？</text><view class="heading-rays" aria-hidden="true"></view></view>
+      <text class="section-copy">我们只看两件事：</text>
+      <text class="section-copy">你一共付了多少钱，以及你应该承担多少钱。</text>
+      <view class="formula-row">
+        <view class="formula-pill pill-blue"><view class="wallet-icon" aria-hidden="true"></view><text>已支付金额</text></view>
+        <text class="formula-sign">−</text>
+        <view class="formula-pill pill-pink"><view class="receipt-small" aria-hidden="true"><view></view><view></view><view></view></view><text>应承担金额</text></view>
+        <text class="formula-sign">=</text>
+        <view class="formula-pill pill-yellow"><text>最终结账金额</text></view>
+      </view>
+      <view class="outcome-grid">
+        <view class="outcome-item"><view class="outcome-symbol symbol-plus">＋</view><text class="outcome-title">结果为正</text><text>说明你多付了</text><text>应该收回这笔钱</text></view>
+        <view class="outcome-item outcome-divider"><view class="outcome-symbol symbol-minus">−</view><text class="outcome-title">结果为负</text><text>说明你少付了</text><text>需要补上差额</text></view>
+        <view class="outcome-item"><view class="outcome-symbol symbol-equal">=</view><text class="outcome-title">结果为零</text><text>说明刚好结清</text><text>不用再付钱啦</text></view>
+      </view>
+    </view>
+
+    <view class="debt-card card-two">
+      <view class="section-heading"><view class="number-badge badge-blue">2</view><text>举个例子</text><view class="heading-rays rays-blue" aria-hidden="true"></view></view>
+      <text class="section-copy example-intro">小安、小林和你一起旅行，有三笔公共消费：</text>
+      <view class="expense-list">
+        <view class="expense-row"><view class="meal-icon expense-icon" aria-hidden="true"><view></view><view></view></view><view class="expense-main"><text>晚餐　¥120</text><text>付款人：小安</text></view><view class="expense-share"><text>每人承担</text><text>¥40</text></view></view>
+        <view class="expense-row"><view class="ticket-icon expense-icon" aria-hidden="true"><view></view></view><view class="expense-main"><text>车票　¥60</text><text>付款人：小林</text></view><view class="expense-share"><text>每人承担</text><text>¥20</text></view></view>
+        <view class="expense-row"><view class="cake-icon expense-icon" aria-hidden="true"><view></view><view></view></view><view class="expense-main"><text>甜点　¥30</text><text>付款人：你</text></view><view class="expense-share"><text>每人承担</text><text>¥10</text></view></view>
+      </view>
+      <view class="total-bubble"><text>每个人都应该</text><text>承担 ¥70</text><text class="bubble-detail">（¥40 ＋ ¥20 ＋ ¥10）</text></view>
+      <text class="table-lead">但大家实际付的钱不一样：</text>
+      <view class="settlement-table">
+        <view class="table-row table-head"><text>成员</text><text>实际支付</text><text>应承担</text><text>最终结果</text></view>
+        <view class="table-row"><text>小安</text><text>¥120</text><text>¥70</text><text class="result-receive">应收 ¥50</text></view>
+        <view class="table-row"><text>小林</text><text>¥60</text><text>¥70</text><text class="result-pay">需付 ¥10</text></view>
+        <view class="table-row"><text>你</text><text>¥30</text><text>¥70</text><text class="result-pay">需付 ¥40</text></view>
+      </view>
+      <view class="transfer-box"><text>最后只需要：</text><view class="transfer-line"><view class="transfer-pill"><text>小林 → 小安</text><strong>¥10</strong></view><view class="transfer-separator"></view><view class="transfer-pill"><text>你 → 小安</text><strong>¥40</strong></view></view></view>
+      <text class="balance-note">这样，三个人最终都刚好承担 ¥70！</text>
+    </view>
+
+    <view class="debt-card card-three">
+      <view class="section-heading"><view class="number-badge badge-blue">3</view><text>为什么要这样算？</text><view class="heading-rays" aria-hidden="true"></view></view>
+      <text class="paragraph">旅行中经常是大家轮流付款。如果每笔消费一次就单独算一次“谁欠谁”，几天下来可能会出现很多笔来回转账：</text>
+      <text class="quote-line">你欠我、我又欠他、他又欠你。</text>
+      <view class="explain-row"><view class="paper-plane" aria-hidden="true"><view></view><view></view></view><view class="explain-bubble"><text>同行小本会先把本轮所有公共账单加在一起，算清楚每个人最终是多付了还是少付了，再把可以互相抵消的金额合并掉。</text></view></view>
+      <text class="paragraph small-paragraph">所以你看到的不是每一笔消费的原始欠款，而是大家都已经互相抵消之后，真正还需要结算的钱。</text>
+      <text class="quote-line closing-line">钱没有变，只是结账更简单了。</text>
+    </view>
+
+    <view class="debt-card card-four">
+      <view class="section-heading"><view class="number-badge badge-yellow">4</view><text>这样算，结果准吗？</text><view class="heading-rays" aria-hidden="true"></view></view>
+      <text class="section-copy">可以放心。同行小本在计算时会遵守以下原则：</text>
+      <view class="rule-list">
+        <view class="rule-row"><view class="rule-icon coin-icon" aria-hidden="true"><view></view><view></view></view><view><text class="rule-title">每笔账都对得上</text><text>一笔公共消费里，所有人的承担金额加起来，一定等于这笔消费的总金额。</text></view></view>
+        <view class="rule-row"><view class="rule-icon lock-icon" aria-hidden="true"><view></view></view><view><text class="rule-title">不会重复算</text><text>已经结过的账，不会再次计入新的欠款。</text></view></view>
+        <view class="rule-row"><view class="rule-icon people-icon" aria-hidden="true"><view></view><view></view></view><view><text class="rule-title">个人消费不会混进来</text><text>只有需要大家一起分摊的公共消费，才会参与结算。</text></view></view>
+        <view class="rule-row"><view class="rule-icon cent-icon" aria-hidden="true">分</view><view><text class="rule-title">金额精确到分</text><text>所有金额都按“分”计算，避免小数计算带来的误差。</text></view></view>
+        <view class="rule-row rule-final"><view class="rule-icon check-icon" aria-hidden="true">✓</view><view><text class="rule-title">最后总账一定平衡</text><text>大家需要付出去的钱，和其他人应该收到的钱，会始终保持一致。</text></view></view>
+      </view>
+    </view>
+
+    <view class="debt-footer"><image src="/assets/hero-travelers-v2.png" mode="widthFix" aria-label="小狗和小猫在旅行中互相帮助" /><view class="footer-sun" aria-hidden="true"></view><text>把每一笔钱算清楚，一起轻松出发！</text></view>
+  </view>
+</scroll-view>
