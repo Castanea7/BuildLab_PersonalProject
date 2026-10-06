@@ -43,7 +43,7 @@
           <text class="trip-meta">{{activeTrip.dateText}} · {{activeTrip.memberText}}</text>
         </view>
         <view class="payment" data-trip-id="{{activeTrip.id}}" catchtap="goSettlement">
-          <text class="payment-label">我需支付</text>
+          <text class="payment-label">{{activeTrip.balanceLabel}}</text>
           <view class="payment-value"><text>{{activeTrip.balanceText}}</text><text class="payment-arrow">›</text></view>
         </view>
       </view>

@@ -11,6 +11,7 @@ Page({
   },
   onInviteInput(event) { this.setData({ inviteCode: event.detail.value.replace(/[^0-9]/g, "").slice(0, 4), error: "" }); },
   submit() {
+    if (!/^\d{4}$/.test(this.data.inviteCode)) { this.setData({ error: "请输入 4 位邀请码" }); return; }
     const result = services.joinTrip({ inviteCode: this.data.inviteCode });
     if (!result.ok) { this.setData({ error: result.error.message }); return; }
     wx.navigateTo({ url: "/pages/trip/index?trip=" + result.data.id });

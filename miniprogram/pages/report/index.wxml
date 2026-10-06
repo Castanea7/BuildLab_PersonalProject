@@ -1,13 +1,82 @@
-<view class="simple-page report-page">
-  <view class="simple-nav"><button class="back-button" aria-label="返回" bindtap="goBack"><view class="back-arrow"></view></button></view>
-  <text class="simple-title">{{report.title}}</text>
-  <text class="simple-lead">{{report.lead}}</text>
-  <view class="paper-panel report-summary">
-    <view class="report-sun" aria-hidden="true"></view><text class="report-label">我的总花销</text><text class="report-total">{{report.totalText}}</text>
-    <text class="report-label report-meta">{{report.count}} 笔 · 日均 {{report.averageText}}</text>
-    <view class="route-line"><view wx:for="{{report.locations}}" wx:key="name"></view></view><text class="route-copy">{{report.routeText || '还没有地点记录'}}</text>
+<view class="report-page">
+  <view class="report-topbar">
+    <button class="back-button" aria-label="返回" bindtap="goBack"><view class="back-arrow"></view></button>
+    <view class="topbar-dots" aria-hidden="true"><view></view><view></view><view></view></view>
   </view>
-  <view class="paper-panel report-section"><text class="report-section-title">每日趋势</text><view class="report-day" wx:for="{{report.daily}}" wx:key="date"><text>{{item.date}}</text><text>{{item.amountText}}</text></view></view>
-  <view class="paper-panel report-section"><text class="report-section-title">类目占比</text><view class="report-day" wx:for="{{report.categories}}" wx:key="category"><text>{{item.category}}</text><text>{{item.amountText}} · {{item.ratio * 100}}%</text></view></view>
-  <view class="paper-panel report-section"><text class="report-section-title">参与过的账单</text><view class="report-day" wx:for="{{report.summaries}}" wx:key="id"><text>{{item.name}}</text><text>{{item.amountText}}</text></view></view>
+
+  <view class="report-heading">
+    <text class="report-page-title">{{report.pageTitle}}</text>
+    <text class="report-trip-name">{{report.tripName}}</text>
+    <text class="report-lead">{{report.lead}}</text>
+    <view class="heading-sun" aria-hidden="true"></view>
+  </view>
+
+  <view class="report-card total-card">
+    <view class="card-heading">
+      <view class="flower-icon" aria-hidden="true"><view></view></view>
+      <text class="card-title">我的总花销</text>
+      <view class="question-icon" aria-hidden="true">?</view>
+    </view>
+    <text class="total-amount">{{report.totalText}}</text>
+    <view class="stat-row">
+      <view class="stat-item"><text class="stat-value">{{report.count}}</text><text class="stat-label">参与账单</text></view>
+      <view class="stat-divider"></view>
+      <view class="stat-item"><text class="stat-value">{{report.averageText}}</text><text class="stat-label">日均花销</text></view>
+    </view>
+  </view>
+
+  <view class="report-card trend-card">
+    <view class="card-heading"><view class="flower-icon" aria-hidden="true"><view></view></view><text class="card-title">每日趋势</text><text class="card-unit">单位：元</text></view>
+    <view wx:if="{{report.daily.length}}" class="trend-chart">
+      <view class="trend-grid"><view></view><view></view><view></view></view>
+      <view class="trend-bars">
+        <view class="trend-item" wx:for="{{report.daily}}" wx:key="date">
+          <text class="trend-value">{{item.amountText}}</text>
+          <view class="trend-bar" style="height: {{item.barHeight}}rpx"></view>
+          <text class="trend-date">{{item.shortDate}}</text>
+        </view>
+      </view>
+    </view>
+    <text wx:else class="empty-copy">还没有每日花销记录</text>
+  </view>
+
+  <view class="report-card category-card">
+    <view class="card-heading"><view class="flower-icon" aria-hidden="true"><view></view></view><text class="card-title">类目占比</text><view class="cat-spark" aria-hidden="true"></view></view>
+    <view wx:if="{{report.categories.length}}" class="category-content">
+      <view class="category-total"><text>{{report.totalText}}</text><text>我的花销</text></view>
+      <view class="category-list">
+        <view class="category-row" wx:for="{{report.categories}}" wx:key="category">
+          <view class="category-label"><view class="category-dot" style="background: {{item.color}}"></view><text>{{item.category}}</text></view>
+          <view class="category-meter"><view style="width: {{item.barWidth}}; background: {{item.color}}"></view></view>
+          <text class="category-ratio">{{item.ratioText}}</text>
+        </view>
+      </view>
+    </view>
+    <text wx:else class="empty-copy">还没有可统计的类目</text>
+  </view>
+
+  <view class="report-card footprint-card">
+    <view class="card-heading"><view class="flower-icon" aria-hidden="true"><view></view></view><text class="card-title">旅行足迹</text><text class="card-count">{{report.locations.length}} 个地点</text></view>
+    <view wx:if="{{report.locations.length}}" class="footprint-list">
+      <view class="footprint-row" wx:for="{{report.locations}}" wx:key="name">
+        <view class="footprint-rail"><view class="map-pin"><view></view></view></view>
+        <view class="footprint-info"><text class="footprint-name">{{item.name}}</text><text class="footprint-date">{{item.shortDate}}</text></view>
+      </view>
+    </view>
+    <text wx:else class="empty-copy">还没有地点记录</text>
+  </view>
+
+  <view class="report-card bills-card">
+    <view class="card-heading"><view class="flower-icon" aria-hidden="true"><view></view></view><text class="card-title">参与过的账单</text><text class="card-count">{{report.summaries.length}} 笔</text></view>
+    <view wx:if="{{report.summaries.length}}" class="bill-list">
+      <view class="bill-row" wx:for="{{report.summaries}}" wx:key="id">
+        <view class="bill-icon" aria-hidden="true"><view></view></view>
+        <view class="bill-info"><text class="bill-name">{{item.name}}</text><text class="bill-category">{{item.categoryLabel}}</text></view>
+        <text class="bill-amount">{{item.amountText}}</text>
+      </view>
+    </view>
+    <text wx:else class="empty-copy">还没有参与过的账单</text>
+  </view>
+
+  <view class="report-footer"><view class="footer-line"></view><text>把每一笔花销，都留成旅行的记忆</text><view class="footer-line"></view></view>
 </view>

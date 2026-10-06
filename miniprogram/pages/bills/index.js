@@ -12,6 +12,7 @@ Page({
     this.setData({ trip, members, showForm: false });
     this.refresh();
     if (options.action === "create") this.openCreate();
+    if (options.action === "edit" && options.bill) this.openEdit(options.bill);
   },
   refresh() { this.setData({ bills: services.listBills(this.tripId).data || [] }); },
   getCategoryIndex(category) { const index = categories.indexOf(category); return index < 0 ? 0 : index; },
@@ -75,7 +76,21 @@ Page({
     this.setData({ "form.memberIds": memberIds, error: "" });
     this.syncMemberDisplay(memberIds, this.data.form.splitMode);
   },
+  validateForm() {
+    const form = this.data.form || {};
+    if (!String(form.name || "").trim()) return "请填写消费名称";
+    if (!String(form.amount || "").trim()) return "请输入金额";
+    if (!form.category) return "请选择类目";
+    if (!form.paymentDate) return "请选择付款日期";
+    if (!form.usageStartDate) return "请选择实际使用日期";
+    if (form.usageDateMode !== "single" && !form.usageEndDate) return "请选择结束日期";
+    if (form.splitMode !== "treat" && !(form.memberIds || []).length) return "请选择分摊成员";
+    if (form.splitMode === "custom" && (form.memberIds || []).some((id) => !String((form.customSharesYuan || {})[id] || "").trim())) return "请填写每位成员的分摊金额";
+    return "";
+  },
   submitForm() {
+    const formError = this.validateForm();
+    if (formError) { this.setData({ error: formError }); return; }
     const input = { ...this.data.form, tripId: this.tripId };
     const result = this.data.editingId ? services.updateBill(this.data.editingId, { ...input, expectedVersion: this.data.form.version }) : services.createBill(input);
     if (!result.ok) { this.setData({ error: result.error.message }); return; }
@@ -86,17 +101,17 @@ Page({
     }
     this.setData({ showForm: false, error: "", editingId: "" });
   },
-  onCheckinInput(event) { this.setData({ checkinLocation: event.detail.value }); },
+  onCheckinInput(event) { this.setData({ checkinLocation: event.detail.value, error: "" }); },
   saveCheckin() {
     const bill = this.data.pendingCheckinBill; const location = String(this.data.checkinLocation || "").trim();
     if (!bill) return;
-    if (location) {
-      const result = services.updateBill(bill.id, { ...bill, expectedVersion: bill.version, location });
-      if (!result.ok) { this.setData({ error: result.error.message }); return; }
-    }
+    if (!location) { this.setData({ error: "请填写地点，或点击“跳过”" }); return; }
+    const result = services.updateBill(bill.id, { ...bill, expectedVersion: bill.version, location });
+    if (!result.ok) { this.setData({ error: result.error.message }); return; }
     this.setData({ showCheckin: false, pendingCheckinBill: null, checkinLocation: "", error: "" }); this.refresh();
   },
   skipCheckin() { this.setData({ showCheckin: false, pendingCheckinBill: null, checkinLocation: "", error: "" }); this.refresh(); },
+  openEdit(billId) { this.editBill({ currentTarget: { dataset: { id: billId } } }); },
   editBill(event) {
     const bill = services.getBill(event.currentTarget.dataset.id);
     if (!bill.ok) { this.setData({ error: bill.error.message }); return; }
@@ -107,9 +122,18 @@ Page({
     this.syncMemberDisplay(form.memberIds, form.splitMode);
   },
   deleteBill(event) {
-    const result = services.deleteBill(event.currentTarget.dataset.id);
-    if (!result.ok) { this.setData({ error: result.error.message }); return; }
-    this.refresh();
+    wx.showModal({
+      title: "删除账单",
+      content: "删除后无法恢复，确定要删除这笔账单吗？",
+      confirmText: "删除",
+      cancelText: "取消",
+      success: ({ confirm }) => {
+        if (!confirm) return;
+        const result = services.deleteBill(event.currentTarget.dataset.id);
+        if (!result.ok) { this.setData({ error: result.error.message }); return; }
+        this.refresh();
+      }
+    });
   },
   goBack() {
     if (getCurrentPages().length > 1) { wx.navigateBack(); return; }

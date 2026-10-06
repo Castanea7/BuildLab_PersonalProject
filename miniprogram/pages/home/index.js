@@ -38,10 +38,19 @@ Page({
     wx.showToast({ title: "Mock 场景已切换", icon: "none" });
   },
   resetMockData() {
-    const result = services.resetMockData();
-    if (!result.ok) { wx.showToast({ title: result.error.message, icon: "none" }); return; }
-    this.refreshHome();
-    wx.showToast({ title: "Mock 数据已重置", icon: "none" });
+    wx.showModal({
+      title: "重置 Mock 数据",
+      content: "当前演示数据将被清除并恢复默认场景，无法恢复。确定重置吗？",
+      confirmText: "重置",
+      cancelText: "取消",
+      success: ({ confirm }) => {
+        if (!confirm) return;
+        const result = services.resetMockData();
+        if (!result.ok) { wx.showToast({ title: result.error.message, icon: "none" }); return; }
+        this.refreshHome();
+        wx.showToast({ title: "Mock 数据已重置", icon: "none" });
+      }
+    });
   },
 
   navigate(event) {

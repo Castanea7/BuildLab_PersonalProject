@@ -5,15 +5,14 @@
   <view class="paper-panel settlement-panel">
     <view class="settlement-section">
       <text class="settlement-section-title">当前阶段 {{preview.stage || '-'}}</text>
-      <text class="settlement-note">我当前需支付 {{preview.balanceText || '¥0.00'}}</text>
       <view class="settlement-row transfer-row" wx:for="{{preview.transfers}}" wx:key="id"><text>{{item.fromName}} → {{item.toName}}</text><text class="settlement-amount">{{item.amountText}}</text></view>
       <text class="settlement-empty" wx:if="{{!preview.transfers.length}}">当前阶段暂无可结账公共账单</text>
     </view>
-    <button class="primary-button" bindtap="createSettlement" wx:if="{{preview.transfers.length}}">创建结账快照</button>
+    <button class="primary-button" bindtap="createSettlement" wx:if="{{preview.transfers.length}}">已结清</button>
     <view class="settlement-history" wx:for="{{settlements}}" wx:key="id">
       <view class="history-head"><text>第 {{item.stage}} 阶段</text><text>{{item.status === 'complete' ? '已完成' : '进行中'}}</text></view>
       <view class="settlement-row" wx:for="{{item.transfers}}" wx:key="id"><text>{{item.fromName}} → {{item.toName}}</text><text class="settlement-amount">{{item.amountText}}</text></view>
-      <button class="secondary-button" data-id="{{item.id}}" bindtap="confirmSettlement" wx:if="{{item.status !== 'complete' && item.memberIds.indexOf('user-me') >= 0 && !item.currentConfirmed}}">我已结清</button>
+      <button class="secondary-button" data-id="{{item.id}}" bindtap="confirmSettlement" wx:if="{{item.status !== 'complete' && item.memberIds.indexOf(currentUserId) >= 0 && !item.currentConfirmed}}">我已结清</button>
     </view>
     <text class="settlement-note">快照创建后，相关账单会锁定；新账单自动进入下一阶段。</text>
   </view>

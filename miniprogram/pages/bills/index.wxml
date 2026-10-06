@@ -37,6 +37,6 @@
   </view>
 
   <view class="checkin-mask" wx:if="{{showCheckin}}" catchtap="skipCheckin">
-    <view class="checkin-modal" catchtap="noop"><text class="form-title">打个卡吧</text><text class="checkin-copy">给这笔{{pendingCheckinBill.category}}消费留个地点吧，也可以先跳过。</text><input class="text-field" value="{{checkinLocation}}" bindinput="onCheckinInput" placeholder="例如：林间餐厅" /><view class="form-buttons"><button class="secondary-button" bindtap="skipCheckin">跳过</button><button class="primary-button" bindtap="saveCheckin">保存地点</button></view></view>
+    <view class="checkin-modal" catchtap="noop"><text class="form-title">打个卡吧</text><text class="checkin-copy">给这笔{{pendingCheckinBill.category}}消费留个地点吧，也可以先跳过。</text><input class="text-field" value="{{checkinLocation}}" bindinput="onCheckinInput" placeholder="例如：林间餐厅" /><view class="form-error" wx:if="{{error}}"><view class="warning-icon" aria-hidden="true"><view class="warning-mark"></view></view><text>{{error}}</text></view><view class="form-buttons"><button class="secondary-button" bindtap="skipCheckin">跳过</button><button class="primary-button" bindtap="saveCheckin">保存地点</button></view></view>
   </view>
 </view>

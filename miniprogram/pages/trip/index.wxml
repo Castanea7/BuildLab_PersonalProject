@@ -19,17 +19,16 @@
     <view class="bills-block">
       <view class="bills-title-row"><text class="members-title">账单列表</text><text class="bills-note">本轮仅展示</text></view>
       <view class="bill-row" wx:for="{{trip.bills}}" wx:key="id">
-        <view class="bill-copy"><text>{{item.name}}</text><text class="member-status">{{item.meta}}</text></view>
-        <text class="bill-amount">{{item.amountText}}</text>
+        <view class="bill-copy"><text class="bill-name">{{item.name}}</text><text class="member-status">我承担 {{item.shareText}}</text></view>
+        <view class="bill-side"><text class="bill-amount">{{item.amountText}}</text><view class="bill-actions"><button wx:if="{{!item.locked && item.createdBy === currentUserId}}" data-id="{{item.id}}" catchtap="editBill">编辑</button><button wx:else data-id="{{item.id}}" catchtap="viewBill">查看</button><button wx:if="{{!item.locked && item.createdBy === currentUserId}}" data-id="{{item.id}}" catchtap="deleteBill">删除</button></view></view>
       </view>
       <text class="empty-bills" wx:if="{{!trip.bills || !trip.bills.length}}">暂时还没有账单</text>
     </view>
     <view class="balance-block">
-      <text>当前我需支付</text><text class="balance">{{trip.balanceText}}</text>
+      <text>{{trip.balanceLabel}}</text><text class="balance">{{trip.balanceText}}</text>
     </view>
     <button class="primary-button" bindtap="record">{{showRecordHint ? '继续记一笔' : '记一笔'}}</button>
-    <button class="secondary-button" bindtap="goBills">查看我的账单</button>
-    <button class="secondary-button" bindtap="goSettlement" wx:if="{{trip.status === '进行中'}}">查看本轮结账</button>
+    <button class="secondary-button" bindtap="goSettlement" wx:if="{{trip.status === '进行中'}}">结账</button>
     <button class="secondary-button end-trip-button" bindtap="endTrip" wx:if="{{isOwner && trip.status === '进行中'}}">结束行程</button>
   </view>
 </view>

@@ -12,6 +12,10 @@ test("账单权限、版本冲突和锁定状态", () => {
   ok(mock.resetMockData());
   const bills = ok(mock.listBills("trip-forest"));
   assert.equal(bills.length, 3);
+  assert.equal(ok(mock.getTrip("trip-forest")).balanceLabel, "这趟有人要还我");
+  const preview = ok(mock.previewSettlement("trip-forest"));
+  assert.equal(preview.balanceLabel, "这趟有人要还我");
+  assert.ok(preview.transfers.every((transfer) => transfer.fromId === "user-me" || transfer.toId === "user-me"));
   const privateBill = bills.find((bill) => bill.privacy === "private");
   assert.equal(ok(mock.getBill(privateBill.id)).privacy, "private");
   const created = ok(mock.createBill({ tripId: "trip-forest", name: "跨日车票", amount: "5.00", category: "交通", privacy: "public", splitMode: "even", payerId: "user-me", memberIds: ["user-me", "user-amy", "user-lin"], paymentDate: "2026-10-03", usageDateMode: "inclusive_range", usageStartDate: "2026-10-03", usageEndDate: "2026-10-04" }));
@@ -20,9 +24,19 @@ test("账单权限、版本冲突和锁定状态", () => {
   assert.equal(updated.version, 2);
   assert.equal(mock.updateBill(created.id, { ...updated, expectedVersion: 1 }).code, "VERSION_CONFLICT");
   const settlement = ok(mock.createSettlement("trip-forest"));
+  const settlementView = ok(mock.listSettlements("trip-forest"))[0];
+  assert.ok(settlementView.transfers.every((transfer) => transfer.fromId === "user-me" || transfer.toId === "user-me"));
+  assert.ok(settlementView.transfers.every((transfer) => !transfer.fromName.startsWith("user-") && !transfer.toName.startsWith("user-")));
   assert.equal(mock.updateBill("bill-dinner", { expectedVersion: 1 }).code, "BILL_LOCKED");
   settlement.memberIds.forEach((memberId) => ok(mock.confirmSettlement(settlement.id, memberId)));
   assert.equal(ok(mock.listSettlements("trip-forest"))[0].status, "complete");
+});
+
+test("净余额方向变化时，摘要文案自动切换", () => {
+  ok(mock.resetMockData());
+  ok(mock.createBill({ tripId: "trip-forest", name: "小安代付住宿", amount: "100.00", category: "住宿", privacy: "public", splitMode: "custom", payerId: "user-amy", memberIds: ["user-me", "user-amy", "user-lin"], customShares: { "user-me": 10000, "user-amy": 0, "user-lin": 0 }, paymentDate: "2026-10-03", usageDateMode: "single", usageStartDate: "2026-10-03", usageEndDate: "2026-10-03" }));
+  assert.equal(ok(mock.getTrip("trip-forest")).balanceLabel, "这趟我还要补上");
+  assert.equal(ok(mock.previewSettlement("trip-forest")).balanceLabel, "这趟我还要补上");
 });
 
 test("多阶段结账、结束行程和个人报告", () => {
@@ -41,6 +55,14 @@ test("多阶段结账、结束行程和个人报告", () => {
   assert.ok(report.daily.some((item) => item.amountCents === 0));
   assert.ok(report.locations.length <= report.summaries.length);
   assert.equal(mock.endTrip("trip-forest").code, "TRIP_ENDED");
+});
+
+test("成员有未结清应收或应付时不能移除", () => {
+  ok(mock.resetMockData());
+  assert.equal(mock.removeMember("trip-forest", "user-amy").code, "MEMBER_NOT_SETTLED");
+  const settlement = ok(mock.createSettlement("trip-forest"));
+  settlement.memberIds.forEach((memberId) => ok(mock.confirmSettlement(settlement.id, memberId)));
+  assert.equal(ok(mock.removeMember("trip-forest", "user-amy")).status, "removed");
 });
 
 test("已移除成员不能新增账单", () => {
