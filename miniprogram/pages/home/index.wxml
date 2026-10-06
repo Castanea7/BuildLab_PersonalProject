@@ -22,34 +22,48 @@
     </view>
   </view>
 
+  <view class="scenario-picker-mask" wx:if="{{showScenarioPicker}}" catchtap="closeMockSettings">
+    <view class="scenario-picker" catchtap="noop">
+      <view class="scenario-picker-head"><text>选择 Mock 场景</text><button bindtap="closeMockSettings">关闭</button></view>
+      <view class="scenario-list"><button wx:for="{{scenarios}}" wx:key="id" class="scenario-option {{item.id === state.scenarioId ? 'selected' : ''}}" data-id="{{item.id}}" bindtap="selectMockScenario">{{item.label}}</button></view>
+    </view>
+  </view>
+
   <view class="content">
-    <view class="section-bar">
+    <view class="section-bar" wx:if="{{currentTrip}}">
       <text class="section-title">进行中</text>
-      <button class="see-all" bindtap="navigate" data-url="/pages/trip/index?trip=forest">查看全部<text>›</text></button>
+      <button class="see-all" data-mode="active" bindtap="openTripList">查看全部<text>›</text></button>
     </view>
 
-    <view class="trip-card" bindtap="navigate" data-url="/pages/trip/index?trip=forest">
+    <view class="trip-card" wx:if="{{activeTrip}}" data-trip-id="{{activeTrip.id}}" bindtap="goTrip">
       <view class="corner-flower flower-yellow" aria-hidden="true"></view>
       <view class="trip-summary">
         <view class="trip-main">
-          <text class="trip-name">森林周末</text>
-          <text class="trip-meta">10月2日 – 10月5日 · 4人</text>
+          <text class="trip-name">{{activeTrip.name}}</text>
+          <text class="trip-meta">{{activeTrip.dateText}} · {{activeTrip.memberText}}</text>
         </view>
-        <view class="payment">
+        <view class="payment" data-trip-id="{{activeTrip.id}}" catchtap="goSettlement">
           <text class="payment-label">我需支付</text>
-          <view class="payment-value"><text>¥138.50</text><text class="payment-arrow">›</text></view>
+          <view class="payment-value"><text>{{activeTrip.balanceText}}</text><text class="payment-arrow">›</text></view>
         </view>
       </view>
       <view class="card-actions">
-        <button class="action-button record-button" catchtap="navigate" data-url="/pages/trip/index?action=record">
+        <button class="action-button record-button" data-trip-id="{{activeTrip.id}}" catchtap="recordTrip">
           <view class="pen-icon" aria-hidden="true"><view class="pen-cap"></view><view class="pen-body"></view><view class="pen-tip"></view></view>
           <text>记一笔</text>
         </button>
-        <button class="action-button bills-button" catchtap="navigate" data-url="/pages/bills/index">
+        <button class="action-button bills-button" data-trip-id="{{activeTrip.id}}" catchtap="goTrip">
           <view class="receipt-icon" aria-hidden="true"><view></view><view></view><view></view></view>
-          <text>查看账单</text>
+          <text>查看行程</text>
         </button>
       </view>
+    </view>
+
+    <view class="empty-panel" wx:if="{{!currentTrip}}">
+      <view class="empty-plane" aria-hidden="true"><view></view><view></view></view>
+      <text class="empty-title">还没有进行中的行程哦～</text>
+      <text class="empty-copy">创建或加入一个行程，
+和朋友一起开启一段美好的回忆吧！</text>
     </view>
 
     <view class="quick-grid">
@@ -74,22 +88,27 @@
 
     <view class="section-bar ended-bar">
       <text class="section-title">已结束</text>
-      <button class="see-all" bindtap="navigate" data-url="/pages/report/index">查看全部<text>›</text></button>
+      <button class="see-all" wx:if="{{endedTrip}}" data-mode="ended" bindtap="openTripList">查看全部<text>›</text></button>
     </view>
-    <view class="ended-card" bindtap="navigate" data-url="/pages/report/index">
+    <view class="ended-card" wx:if="{{endedTrip}}" data-trip-id="{{endedTrip.id}}" bindtap="openReport">
       <view class="ended-copy">
-        <text class="ended-name">山城三日</text>
-        <text class="ended-meta">6月1日 – 6月3日 · 3人</text>
+        <text class="ended-name">{{endedTrip.name}}</text>
+        <text class="ended-meta">{{endedTrip.dateText}} · {{endedTrip.memberText}}</text>
       </view>
-      <button class="report-button" catchtap="navigate" data-url="/pages/report/index">查看我的报告<text>›</text></button>
+      <button class="report-button" data-trip-id="{{endedTrip.id}}" catchtap="openReport">查看我的报告<text>›</text></button>
       <view class="corner-flower flower-blue" aria-hidden="true"></view>
       <view class="ended-landscape" aria-hidden="true"><view class="hill"></view><view class="sun-rays"><view></view><view></view><view></view></view><view class="sprout sprout-one"></view><view class="sprout sprout-two"></view></view>
+    </view>
+    <view class="empty-panel ended-empty" wx:if="{{!endedTrip}}">
+      <view class="empty-box" aria-hidden="true"><view></view></view>
+      <text class="empty-title">还没有结束的行程哦～</text>
+      <text class="empty-copy">完成一段旅程后，这里会显示你的行程记录</text>
     </view>
 
     <view class="page-wish">
       <text>祝你拥有神奇的一天！</text>
       <view class="wish-underline" aria-hidden="true"></view>
-      <view class="wish-sun" aria-hidden="true"><view></view><view></view><view></view><view></view></view>
+      <view class="wish-sun" aria-hidden="true"><view></view><view></view><view></view><view></view><view></view><view></view></view>
     </view>
   </view>
 

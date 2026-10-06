@@ -1,0 +1,11 @@
+.settlement-panel { padding-top: 42rpx; }
+.settlement-section { padding-bottom: 26rpx; }
+.settlement-section + .settlement-section { margin-top: 24rpx; padding-top: 26rpx; border-top: 2rpx dashed #cddce5; }
+.settlement-section-title { display: block; font-size: 30rpx; font-weight: 900; }
+.receivable-title { color: #3f8b68; }
+.payable-title { color: #c46a55; }
+.settlement-row { display: flex; justify-content: space-between; margin-top: 20rpx; padding: 20rpx 22rpx; border-radius: 18rpx; background: #f7faf7; color: #173149; font-size: 27rpx; }
+.payable-title + .settlement-row { background: #fff7f3; }
+.settlement-amount { font-family: sans-serif; font-weight: 900; }
+.settlement-empty { display: block; margin-top: 18rpx; color: #9aabc0; font-size: 24rpx; }
+.settlement-note { display: block; margin-top: 12rpx; color: #9aabc0; font-size: 22rpx; line-height: 1.6; }

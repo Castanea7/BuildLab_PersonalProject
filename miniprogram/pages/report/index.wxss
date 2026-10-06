@@ -5,3 +5,7 @@
 .route-line { display: flex; align-items: center; justify-content: space-between; height: 80rpx; margin-top: 54rpx; border-top: 6rpx dashed #7fc5f7; }
 .route-line view { width: 24rpx; height: 24rpx; margin-top: -15rpx; border: 6rpx solid #fffdf8; border-radius: 50%; background: #ff846d; }
 .route-copy { display: block; margin-top: 10rpx; color: #5f7890; font-size: 26rpx; font-weight: 700; }
+.report-meta { margin-top: 12rpx; }
+.report-section { margin-top: 22rpx; }
+.report-section-title { display: block; margin-bottom: 14rpx; color: #173149; font-size: 29rpx; font-weight: 900; }
+.report-day { display: flex; justify-content: space-between; padding: 16rpx 0; border-top: 2rpx solid #f0eee8; color: #5f7890; font-size: 24rpx; }

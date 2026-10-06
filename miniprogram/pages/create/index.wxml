@@ -5,7 +5,29 @@
   <view class="paper-panel form-panel">
     <view class="form-clipboard" aria-hidden="true"><view class="form-clip"></view><view class="form-paper"><view></view><view></view><view></view></view></view>
     <text class="field-label">行程名称</text>
-    <input class="text-field" placeholder="例如：海风周末" maxlength="16" />
+    <input class="text-field" placeholder="例如：海风周末" maxlength="16" value="{{name}}" bindinput="onNameInput" />
+    <text class="field-label date-label">开始日期</text>
+    <picker mode="date" value="{{startDate}}" bindchange="onStartDateChange">
+      <view class="date-field">{{startDate || '选择开始日期'}}</view>
+    </picker>
+    <text class="field-label date-label">结束日期</text>
+    <picker mode="date" value="{{endDate}}" bindchange="onEndDateChange">
+      <view class="date-field">{{endDate || '选择结束日期'}}</view>
+    </picker>
+    <text class="form-error" wx:if="{{error}}">{{error}}</text>
     <button class="primary-button" bindtap="submit">创建行程</button>
+  </view>
+
+  <view class="created-modal-mask" wx:if="{{createdTrip}}" catchtap="noop">
+    <view class="created-modal" catchtap="noop">
+      <text class="created-title">行程已创建</text>
+      <text class="created-copy">把邀请码分享给同行的朋友吧</text>
+      <text class="created-trip-name">{{createdTrip.name}}</text>
+      <view class="created-code-card">
+        <text class="created-code">{{createdTrip.inviteCode}}</text>
+        <button class="copy-button" bindtap="copyInvite">复制邀请码</button>
+      </view>
+      <button class="close-created-button" bindtap="closeCreatedModal">关闭</button>
+    </view>
   </view>
 </view>

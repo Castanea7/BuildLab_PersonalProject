@@ -1,13 +1,35 @@
 <view class="simple-page">
   <view class="simple-nav"><button class="back-button" aria-label="返回" bindtap="goBack"><view class="back-arrow"></view></button></view>
-  <text class="simple-title">森林周末</text>
-  <text class="simple-lead">10月2日 – 10月5日 · 4位同行人</text>
+  <text class="simple-title">{{trip.name}}</text>
+  <text class="simple-lead">{{trip.dateText}} · {{trip.memberText}}</text>
   <view class="paper-panel">
-    <view class="trip-state"><view class="state-dot"></view><text>进行中</text></view>
+      <view class="trip-state"><view class="state-dot"></view><text>{{trip.status}}</text></view>
+    <view class="invite-block" wx:if="{{trip.status === '进行中'}}">
+      <text class="invite-label">行程邀请码</text>
+      <text class="invite-code">{{trip.inviteCode}}</text>
+      <text class="invite-hint">邀请码与本行程唯一对应</text>
+    </view>
+    <view class="members-block">
+      <text class="members-title">同行成员 · {{trip.memberText}}</text>
+      <view class="member-row" wx:for="{{trip.members}}" wx:key="id">
+        <view class="member-info"><text>{{item.name || item.id}}</text><text class="member-status">{{item.status === 'removed' ? '已移除' : item.role === 'owner' ? '房主' : '成员'}}</text></view>
+        <button wx:if="{{isOwner && item.id !== 'user-me' && item.status !== 'removed'}}" class="remove-member" data-id="{{item.id}}" catchtap="removeMember">移除</button>
+      </view>
+    </view>
+    <view class="bills-block">
+      <view class="bills-title-row"><text class="members-title">账单列表</text><text class="bills-note">本轮仅展示</text></view>
+      <view class="bill-row" wx:for="{{trip.bills}}" wx:key="id">
+        <view class="bill-copy"><text>{{item.name}}</text><text class="member-status">{{item.meta}}</text></view>
+        <text class="bill-amount">{{item.amountText}}</text>
+      </view>
+      <text class="empty-bills" wx:if="{{!trip.bills || !trip.bills.length}}">暂时还没有账单</text>
+    </view>
     <view class="balance-block">
-      <text>当前我需支付</text><text class="balance">¥138.50</text>
+      <text>当前我需支付</text><text class="balance">{{trip.balanceText}}</text>
     </view>
     <button class="primary-button" bindtap="record">{{showRecordHint ? '继续记一笔' : '记一笔'}}</button>
     <button class="secondary-button" bindtap="goBills">查看我的账单</button>
+    <button class="secondary-button" bindtap="goSettlement" wx:if="{{trip.status === '进行中'}}">查看本轮结账</button>
+    <button class="secondary-button end-trip-button" bindtap="endTrip" wx:if="{{isOwner && trip.status === '进行中'}}">结束行程</button>
   </view>
 </view>

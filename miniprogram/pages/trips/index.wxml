@@ -1,0 +1,13 @@
+<view class="simple-page trips-page">
+  <view class="simple-nav"><button class="back-button" aria-label="返回" bindtap="goBack"><view class="back-arrow"></view></button></view>
+  <text class="simple-title">{{title}}</text>
+  <text class="simple-lead">{{mode === 'ended' ? '这里保存已经结束的同行记录。' : '选择一段进行中的同行继续记录。'}}</text>
+  <view class="paper-panel trip-list-panel">
+    <view class="trip-list-row" wx:for="{{trips}}" wx:key="id" data-id="{{item.id}}" bindtap="openTrip">
+      <view class="trip-list-copy"><text class="trip-list-name">{{item.name}}</text><text class="mini-muted">{{item.dateText}} · {{item.memberText}}</text></view>
+      <button wx:if="{{mode === 'active'}}" class="list-record-button" data-id="{{item.id}}" catchtap="record">记一笔</button>
+      <text wx:if="{{mode === 'ended'}}" class="list-report-arrow">查看报告 ›</text>
+    </view>
+    <view class="empty-panel list-empty" wx:if="{{!trips.length}}"><text class="empty-title">{{mode === 'ended' ? '还没有历史行程' : '还没有进行中的行程'}}</text><text class="empty-copy">回到首页创建或加入一段同行吧</text></view>
+  </view>
+</view>

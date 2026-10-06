@@ -1,4 +1,7 @@
+const services = require("../../services/index");
+
 Page({
+  data: { inviteCode: "", error: "" },
   goBack() {
     if (getCurrentPages().length > 1) {
       wx.navigateBack();
@@ -6,5 +9,10 @@ Page({
     }
     wx.reLaunch({ url: "/pages/home/index" });
   },
-  submit() { wx.navigateTo({ url: "/pages/trip/index?trip=joined" }); }
+  onInviteInput(event) { this.setData({ inviteCode: event.detail.value.replace(/[^0-9]/g, "").slice(0, 4), error: "" }); },
+  submit() {
+    const result = services.joinTrip({ inviteCode: this.data.inviteCode });
+    if (!result.ok) { this.setData({ error: result.error.message }); return; }
+    wx.navigateTo({ url: "/pages/trip/index?trip=" + result.data.id });
+  }
 });

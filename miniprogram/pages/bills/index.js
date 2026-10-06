@@ -1,9 +1,118 @@
+const services = require("../../services/index");
+
+const categories = ["餐饮", "住宿", "门票", "交通", "购物", "其他"];
+const checkinCategories = ["住宿", "餐饮", "门票"];
+
 Page({
-  goBack() {
-    if (getCurrentPages().length > 1) {
-      wx.navigateBack();
+  data: { trip: null, bills: [], members: [], displayMembers: [], selectedMembers: [], memberText: "", categories, categoryIndex: 0, form: {}, error: "", editingId: "", showForm: false, showCheckin: false, pendingCheckinBill: null, checkinLocation: "" },
+  onLoad(options) {
+    const trip = services.getTrip(options.trip).data;
+    this.tripId = options.trip || (trip && trip.id);
+    const members = trip ? trip.members.filter((member) => member.status === "active").map((member) => ({ ...member, displayName: member.id === "user-me" ? "我" : member.name })) : [];
+    this.setData({ trip, members, showForm: false });
+    this.refresh();
+    if (options.action === "create") this.openCreate();
+  },
+  refresh() { this.setData({ bills: services.listBills(this.tripId).data || [] }); },
+  getCategoryIndex(category) { const index = categories.indexOf(category); return index < 0 ? 0 : index; },
+  buildUsageText(form) {
+    if (!form.usageStartDate) return "";
+    if (form.usageDateMode === "single") return form.usageStartDate;
+    if (!form.usageEndDate) return form.usageStartDate + " ~ 请选择结束日期";
+    return form.usageStartDate + " ~ " + (form.usageEndDate || form.usageStartDate);
+  },
+  syncMemberDisplay(memberIds, splitMode) {
+    const visibleMembers = splitMode === "treat" ? this.data.members.filter((member) => member.id === "user-me") : this.data.members;
+    const displayMembers = visibleMembers.map((member) => ({ ...member, checked: memberIds.includes(member.id) }));
+    const selectedMembers = this.data.members.filter((member) => memberIds.includes(member.id));
+    const memberText = splitMode === "treat" ? "我" : selectedMembers.map((member) => member.displayName).join("、") || "请选择分摊成员";
+    this.setData({ displayMembers, selectedMembers, memberText });
+  },
+  openCreate() {
+    const today = this.data.trip ? this.data.trip.startDate : "";
+    const form = { name: "", amount: "", category: "餐饮", privacy: "public", splitMode: "even", payerId: "user-me", memberIds: this.data.members.map((member) => member.id), customSharesYuan: {}, paymentDate: today, usageDateMode: "single", usageStartDate: today, usageEndDate: today, usageText: today };
+    this.setData({ showForm: true, editingId: "", error: "", categoryIndex: 0, form });
+    this.syncMemberDisplay(form.memberIds, form.splitMode);
+  },
+  closeForm() { this.setData({ showForm: false, error: "" }); },
+  noop() {},
+  onInput(event) { this.setData({ ["form." + event.currentTarget.dataset.field]: event.detail.value, error: "" }); },
+  onPaymentDateChange(event) { this.setData({ "form.paymentDate": event.detail.value, error: "" }); },
+  validateUsageDateSelection(field, value) {
+    const trip = this.data.trip; const form = this.data.form;
+    if (!trip || value < trip.startDate || value > trip.endDate) return `实际使用日期必须在行程范围内（${trip ? trip.startDate : ""}~${trip ? trip.endDate : ""}）`;
+    const nextForm = { ...form, [field]: value };
+    if (nextForm.usageDateMode !== "single" && nextForm.usageEndDate && nextForm.usageEndDate <= nextForm.usageStartDate) return "结束日期必须晚于开始日期";
+    return "";
+  },
+  onUsageDateChange(event) {
+    const field = event.currentTarget.dataset.field; const value = event.detail.value; const error = this.validateUsageDateSelection(field, value);
+    if (error) { this.setData({ error }); return; }
+    const form = { ...this.data.form, [field]: value };
+    form.usageText = this.buildUsageText(form); this.setData({ form, error: "" });
+  },
+  onCategoryChange(event) {
+    const categoryIndex = Number(event.detail.value); const category = categories[categoryIndex]; const form = { ...this.data.form, category, usageDateMode: category === "住宿" ? "night_range" : "single" };
+    if (category !== "住宿") form.usageEndDate = form.usageStartDate;
+    form.usageText = this.buildUsageText(form);
+    this.setData({ categoryIndex, form, error: "" });
+  },
+  onPrivacyChange(event) { this.setData({ "form.privacy": event.detail.value, error: "" }); },
+  onSplitModeChange(event) {
+    const splitMode = event.detail.value; const memberIds = splitMode === "treat" ? ["user-me"] : (this.data.form.memberIds || []);
+    this.setData({ "form.splitMode": splitMode, "form.memberIds": memberIds, error: "" }); this.syncMemberDisplay(memberIds, splitMode);
+  },
+  onUsageModeChange(event) { const form = { ...this.data.form, usageDateMode: event.detail.value }; form.usageEndDate = event.detail.value === "single" ? form.usageStartDate : ""; form.usageText = this.buildUsageText(form); this.setData({ form, error: "" }); },
+  onCustomShareInput(event) { const shares = { ...(this.data.form.customSharesYuan || {}) }; shares[event.currentTarget.dataset.id] = event.detail.value; this.setData({ "form.customSharesYuan": shares, error: "" }); },
+  onMemberToggle(event) {
+    if (this.data.form.splitMode === "treat") {
+      this.setData({ "form.memberIds": ["user-me"], error: "" });
+      this.syncMemberDisplay(["user-me"], "treat");
       return;
     }
+    const id = event.currentTarget.dataset.id; const checked = (event.detail.value || []).includes(id); const ids = this.data.form.memberIds || [];
+    const memberIds = checked ? Array.from(new Set(ids.concat(id))) : ids.filter((item) => item !== id);
+    this.setData({ "form.memberIds": memberIds, error: "" });
+    this.syncMemberDisplay(memberIds, this.data.form.splitMode);
+  },
+  submitForm() {
+    const input = { ...this.data.form, tripId: this.tripId };
+    const result = this.data.editingId ? services.updateBill(this.data.editingId, { ...input, expectedVersion: this.data.form.version }) : services.createBill(input);
+    if (!result.ok) { this.setData({ error: result.error.message }); return; }
+    this.refresh();
+    if (checkinCategories.includes(input.category)) {
+      this.setData({ showForm: false, error: "", editingId: "", pendingCheckinBill: result.data, checkinLocation: "", showCheckin: true });
+      return;
+    }
+    this.setData({ showForm: false, error: "", editingId: "" });
+  },
+  onCheckinInput(event) { this.setData({ checkinLocation: event.detail.value }); },
+  saveCheckin() {
+    const bill = this.data.pendingCheckinBill; const location = String(this.data.checkinLocation || "").trim();
+    if (!bill) return;
+    if (location) {
+      const result = services.updateBill(bill.id, { ...bill, expectedVersion: bill.version, location });
+      if (!result.ok) { this.setData({ error: result.error.message }); return; }
+    }
+    this.setData({ showCheckin: false, pendingCheckinBill: null, checkinLocation: "", error: "" }); this.refresh();
+  },
+  skipCheckin() { this.setData({ showCheckin: false, pendingCheckinBill: null, checkinLocation: "", error: "" }); this.refresh(); },
+  editBill(event) {
+    const bill = services.getBill(event.currentTarget.dataset.id);
+    if (!bill.ok) { this.setData({ error: bill.error.message }); return; }
+    const customSharesYuan = {};
+    Object.keys(bill.data.shares || {}).forEach((id) => { customSharesYuan[id] = (bill.data.shares[id] / 100).toFixed(2); });
+    const form = { ...bill.data, amount: (bill.data.totalCents / 100).toFixed(2), memberIds: Object.keys(bill.data.shares || {}), customSharesYuan, usageText: this.buildUsageText(bill.data) };
+    this.setData({ editingId: bill.data.id, showForm: true, error: "", categoryIndex: this.getCategoryIndex(bill.data.category), form });
+    this.syncMemberDisplay(form.memberIds, form.splitMode);
+  },
+  deleteBill(event) {
+    const result = services.deleteBill(event.currentTarget.dataset.id);
+    if (!result.ok) { this.setData({ error: result.error.message }); return; }
+    this.refresh();
+  },
+  goBack() {
+    if (getCurrentPages().length > 1) { wx.navigateBack(); return; }
     wx.reLaunch({ url: "/pages/home/index" });
   }
 });

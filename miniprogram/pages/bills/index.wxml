@@ -1,9 +1,42 @@
 <view class="simple-page">
   <view class="simple-nav"><button class="back-button" aria-label="返回" bindtap="goBack"><view class="back-arrow"></view></button></view>
   <text class="simple-title">我的账单</text>
-  <text class="simple-lead">这里只展示当前用户可见的示例账单。</text>
+  <text class="simple-lead">这里只展示当前用户有权限查看的账单。</text>
   <view class="paper-panel mini-list">
-    <view class="mini-row"><view class="bill-icon bill-food"><view></view></view><view class="bill-copy"><text>森林晚餐</text><text class="mini-muted">10月3日 · 公共账单</text></view><text>¥86.00</text></view>
-    <view class="mini-row"><view class="bill-icon bill-ticket"><view></view></view><view class="bill-copy"><text>往返车票</text><text class="mini-muted">10月2日 · 公共账单</text></view><text>¥52.50</text></view>
+    <view class="mini-row bill-item" wx:for="{{bills}}" wx:key="id">
+      <view class="bill-icon bill-{{item.category === '交通' ? 'ticket' : 'food'}}"><view></view></view>
+      <view class="bill-copy"><text>{{item.name}}</text><text class="mini-muted">{{item.paymentDate}} · {{item.privacy === 'private' ? '私密' : '公共'}} · 我承担 {{item.shareText}}</text><text class="mini-muted">{{item.lockedText}}</text></view>
+      <view class="bill-actions"><text>{{item.amountText}}</text><button wx:if="{{!item.locked && item.createdBy === 'user-me'}}" data-id="{{item.id}}" bindtap="editBill">编辑</button><button wx:if="{{!item.locked && item.createdBy === 'user-me'}}" data-id="{{item.id}}" bindtap="deleteBill">删除</button></view>
+    </view>
+    <text class="empty-bills" wx:if="{{!bills.length}}">暂无可见账单</text>
+  </view>
+  <view class="form-error" wx:if="{{error}}"><view class="warning-icon" aria-hidden="true"><view class="warning-mark"></view></view><text>{{error}}</text></view>
+  <button class="primary-button" bindtap="openCreate" wx:if="{{trip && trip.status === '进行中'}}">记一笔</button>
+
+  <view class="bill-form-mask" wx:if="{{showForm}}">
+    <view class="bill-form" catchtap="noop">
+      <text class="form-title">{{editingId ? '编辑账单' : '新建账单'}}</text>
+      <text class="field-label">消费名称</text><input class="text-field" data-field="name" value="{{form.name}}" bindinput="onInput" placeholder="例如：森林晚餐" />
+      <text class="field-label">金额（元）</text><input class="text-field" type="digit" data-field="amount" value="{{form.amount}}" bindinput="onInput" placeholder="0.00" />
+      <text class="field-label">类目</text><picker mode="selector" range="{{categories}}" value="{{categoryIndex}}" bindchange="onCategoryChange"><view class="date-field">{{form.category || '选择类目'}}</view></picker>
+      <text class="field-label">付款日期</text><picker mode="date" value="{{form.paymentDate}}" bindchange="onPaymentDateChange"><view class="date-field">{{form.paymentDate || '选择付款日期'}}</view></picker>
+
+      <view class="usage-head"><text class="field-label">实际使用日期</text><view class="usage-mode" wx:if="{{form.category !== '住宿'}}"><radio-group bindchange="onUsageModeChange"><label><radio value="single" checked="{{form.usageDateMode === 'single'}}" />单日</label><label><radio value="inclusive_range" checked="{{form.usageDateMode === 'inclusive_range'}}" />跨日</label></radio-group></view><text class="usage-note" wx:if="{{form.category === '住宿'}}">请填写入住日和退房日</text></view>
+      <view wx:if="{{form.usageDateMode === 'single'}}" class="usage-picker-row"><picker mode="date" value="{{form.usageStartDate}}" data-field="usageStartDate" bindchange="onUsageDateChange"><view class="date-field">{{form.usageText || '选择实际使用日期'}}</view></picker></view>
+      <view wx:else><view class="usage-range-row"><picker mode="date" value="{{form.usageStartDate}}" data-field="usageStartDate" bindchange="onUsageDateChange"><view class="date-field">{{form.usageStartDate || '选择起始日'}}</view></picker><text>~</text><picker mode="date" value="{{form.usageEndDate}}" data-field="usageEndDate" bindchange="onUsageDateChange"><view class="date-field">{{form.usageEndDate || '选择结束日'}}</view></picker></view></view>
+
+      <view class="radio-line"><text>账单类型</text><radio-group bindchange="onPrivacyChange"><label><radio value="public" checked="{{form.privacy === 'public'}}" />公共</label><label><radio value="private" checked="{{form.privacy === 'private'}}" />私密</label></radio-group></view>
+      <view wx:if="{{form.privacy === 'public'}}">
+        <view class="radio-line"><text>分摊方式</text><radio-group bindchange="onSplitModeChange"><label><radio value="even" checked="{{form.splitMode === 'even'}}" />均摊</label><label><radio value="custom" checked="{{form.splitMode === 'custom'}}" />自定义</label><label><radio value="treat" checked="{{form.splitMode === 'treat'}}" />请客</label></radio-group></view>
+        <text class="field-label">分摊成员</text>
+        <view class="member-list"><view class="member-option" wx:for="{{displayMembers}}" wx:key="id"><label class="member-check"><checkbox-group bindchange="onMemberToggle" data-id="{{item.id}}"><checkbox value="{{item.id}}" checked="{{item.checked}}" disabled="{{form.splitMode === 'treat'}}" /></checkbox-group><text>{{item.displayName}}</text></label><view wx:if="{{form.splitMode === 'custom'}}" class="share-input-wrap"><input class="share-input" type="digit" data-id="{{item.id}}" value="{{form.customSharesYuan[item.id]}}" bindinput="onCustomShareInput" placeholder="0.00" /><text>元</text></view></view></view>
+      </view>
+      <view class="form-error" wx:if="{{error}}"><view class="warning-icon" aria-hidden="true"><view class="warning-mark"></view></view><text>{{error}}</text></view>
+      <view class="form-buttons"><button class="secondary-button" bindtap="closeForm">取消</button><button class="primary-button" bindtap="submitForm">保存</button></view>
+    </view>
+  </view>
+
+  <view class="checkin-mask" wx:if="{{showCheckin}}" catchtap="skipCheckin">
+    <view class="checkin-modal" catchtap="noop"><text class="form-title">打个卡吧</text><text class="checkin-copy">给这笔{{pendingCheckinBill.category}}消费留个地点吧，也可以先跳过。</text><input class="text-field" value="{{checkinLocation}}" bindinput="onCheckinInput" placeholder="例如：林间餐厅" /><view class="form-buttons"><button class="secondary-button" bindtap="skipCheckin">跳过</button><button class="primary-button" bindtap="saveCheckin">保存地点</button></view></view>
   </view>
 </view>

@@ -1,12 +1,13 @@
 <view class="simple-page report-page">
   <view class="simple-nav"><button class="back-button" aria-label="返回" bindtap="goBack"><view class="back-arrow"></view></button></view>
-  <text class="simple-title">山城三日 · 我的报告</text>
-  <text class="simple-lead">旅程结束后，每位同行人只会看到属于自己的回忆与花销。</text>
+  <text class="simple-title">{{report.title}}</text>
+  <text class="simple-lead">{{report.lead}}</text>
   <view class="paper-panel report-summary">
-    <view class="report-sun" aria-hidden="true"></view>
-    <text class="report-label">我的总花销</text>
-    <text class="report-total">¥486.20</text>
-    <view class="route-line"><view></view><view></view><view></view></view>
-    <text class="route-copy">老街 · 江畔 · 山顶夜景</text>
+    <view class="report-sun" aria-hidden="true"></view><text class="report-label">我的总花销</text><text class="report-total">{{report.totalText}}</text>
+    <text class="report-label report-meta">{{report.count}} 笔 · 日均 {{report.averageText}}</text>
+    <view class="route-line"><view wx:for="{{report.locations}}" wx:key="name"></view></view><text class="route-copy">{{report.routeText || '还没有地点记录'}}</text>
   </view>
+  <view class="paper-panel report-section"><text class="report-section-title">每日趋势</text><view class="report-day" wx:for="{{report.daily}}" wx:key="date"><text>{{item.date}}</text><text>{{item.amountText}}</text></view></view>
+  <view class="paper-panel report-section"><text class="report-section-title">类目占比</text><view class="report-day" wx:for="{{report.categories}}" wx:key="category"><text>{{item.category}}</text><text>{{item.amountText}} · {{item.ratio * 100}}%</text></view></view>
+  <view class="paper-panel report-section"><text class="report-section-title">参与过的账单</text><view class="report-day" wx:for="{{report.summaries}}" wx:key="id"><text>{{item.name}}</text><text>{{item.amountText}}</text></view></view>
 </view>
