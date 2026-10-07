@@ -6,9 +6,9 @@
     <view class="settlement-section">
       <text class="settlement-section-title">当前阶段 {{preview.stage || '-'}}</text>
       <view class="settlement-row transfer-row" wx:for="{{preview.transfers}}" wx:key="id"><text>{{item.fromName}} → {{item.toName}}</text><text class="settlement-amount">{{item.amountText}}</text></view>
-      <text class="settlement-empty" wx:if="{{!preview.transfers.length}}">当前阶段暂无可结账公共账单</text>
+      <text class="settlement-empty" wx:if="{{!preview.billIds.length}}">当前阶段暂无可结账公共账单</text>
     </view>
-    <button class="primary-button" bindtap="createSettlement" wx:if="{{preview.transfers.length}}">已结清</button>
+    <button class="primary-button" bindtap="createSettlement" wx:if="{{preview.billIds.length}}">已结清</button>
     <view class="settlement-history" wx:for="{{settlements}}" wx:key="id">
       <view class="history-head"><text>第 {{item.stage}} 阶段</text><text>{{item.status === 'complete' ? '已完成' : '进行中'}}</text></view>
       <view class="settlement-row" wx:for="{{item.transfers}}" wx:key="id"><text>{{item.fromName}} → {{item.toName}}</text><text class="settlement-amount">{{item.amountText}}</text></view>

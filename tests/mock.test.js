@@ -45,9 +45,7 @@ test("多阶段结账、结束行程和个人报告", () => {
   first.memberIds.forEach((memberId) => ok(mock.confirmSettlement(first.id, memberId)));
   const nextBill = ok(mock.createBill({ tripId: "trip-forest", name: "第二阶段早餐", amount: "3.00", category: "餐饮", privacy: "public", splitMode: "treat", payerId: "user-me", memberIds: ["user-me", "user-amy", "user-lin"], paymentDate: "2026-10-04", usageDateMode: "single", usageStartDate: "2026-10-04", usageEndDate: "2026-10-04" }));
   assert.equal(nextBill.stage, 2);
-  assert.equal(mock.endTrip("trip-forest").code, "TRIP_NOT_READY");
-  const second = ok(mock.createSettlement("trip-forest"));
-  second.memberIds.forEach((memberId) => ok(mock.confirmSettlement(second.id, memberId)));
+  assert.equal(mock.previewSettlement("trip-forest").code, "NO_SETTLEMENT");
   const ended = ok(mock.endTrip("trip-forest"));
   assert.equal(ended.status, "已结束");
   const report = ok(mock.getPersonalReport("trip-forest"));

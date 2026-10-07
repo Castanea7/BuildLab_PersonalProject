@@ -1,0 +1,57 @@
+<scroll-view class="about-page" scroll-y="true" enhanced="true" show-scrollbar="false">
+  <view class="about-topbar">
+    <button class="about-back" aria-label="返回" bindtap="goBack"><view class="about-back-arrow"></view></button>
+    <text class="about-nav-title">关于同行小本</text>
+    <view class="about-menu" aria-hidden="true"><view></view><view></view><view></view></view>
+    <view class="about-menu-dot" aria-hidden="true"></view>
+  </view>
+
+  <view class="about-hero">
+    <view class="about-sun" aria-hidden="true"></view>
+    <view class="about-cloud cloud-one" aria-hidden="true"></view>
+    <view class="about-cloud cloud-two" aria-hidden="true"></view>
+    <view class="about-hero-copy">
+      <text class="about-big-title">关于
+同行小本</text>
+      <view class="about-rays" aria-hidden="true"><view></view><view></view><view></view></view>
+      <text class="about-slogan">让记账简单一点，
+让旅行轻松一点。</text>
+      <view class="about-yellow-line" aria-hidden="true"></view>
+    </view>
+    <image class="about-hero-art" src="/assets/hero-travelers-v2.png" mode="widthFix" aria-label="小狗和小猫一起旅行" />
+    <view class="about-mountain mountain-back" aria-hidden="true"></view>
+    <view class="about-water water-top" aria-hidden="true"></view>
+    <view class="about-grass grass-top" aria-hidden="true"><view></view><view></view><view></view></view>
+  </view>
+
+  <view class="about-story">
+    <text class="about-paragraph">同行小本是一款专为结伴旅行设计的记账小程序。</text>
+    <text class="about-paragraph about-paragraph-spaced">结伴出行，经常会遇到共同消费、轮流付款的情况。
+一路下来，账单越积越多，谁付了多少、每个人该分多少，
+算起来很麻烦。</text>
+    <text class="about-paragraph about-paragraph-spaced">现在，你只需要随手把消费记录下来，
+剩下的交给同行小本就好。</text>
+    <view class="about-highlight">
+      <text>少一点记账算账的麻烦，</text>
+      <text>把更多时间留给旅行本身。</text>
+      <view class="highlight-line line-one" aria-hidden="true"></view>
+      <view class="highlight-line line-two" aria-hidden="true"></view>
+      <view class="about-rays highlight-rays" aria-hidden="true"><view></view><view></view><view></view></view>
+    </view>
+  </view>
+
+  <view class="about-contact">
+    <view class="about-section-title"><text>联系我们</text><view class="title-rays" aria-hidden="true"><view></view><view></view></view></view>
+    <text class="about-contact-copy">如果你在使用同行小本的过程中遇到了问题，
+或者有任何想法和建议，欢迎来信告诉我们。</text>
+    <view class="about-email"><view class="mail-icon" aria-hidden="true"><view></view></view><view class="mail-divider"></view><text>zuogehaogongju@163.com</text></view>
+    <text class="about-contact-note">每一条反馈我们都会认真阅读。
+也希望同行小本在一次次旅途中变得更好用。</text>
+  </view>
+
+  <view class="about-footer">
+    <text>祝每一次同行，都有好心情！</text>
+    <view class="footer-line" aria-hidden="true"></view>
+    <image class="about-footer-art" src="/assets/about-footer-landscape-v1.png" mode="widthFix" aria-label="湖边旅行风景" />
+  </view>
+</scroll-view>

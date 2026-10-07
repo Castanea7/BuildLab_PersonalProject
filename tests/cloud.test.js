@@ -113,16 +113,29 @@ test("清算和报告 Cloud 适配器使用统一 action 包络", async () => {
     await cloud.confirmSettlement("settlement-1");
     await cloud.endTrip("trip-1");
     await cloud.getPersonalReport("trip-1");
+    await cloud.deletePersonalReport("trip-1");
     assert.deepEqual(calls.map((item) => item.data), [
       { action: "previewSettlement", payload: { tripId: "trip-1" } },
       { action: "createSettlement", payload: { tripId: "trip-1" } },
       { action: "listSettlements", payload: { tripId: "trip-1" } },
       { action: "confirmSettlement", payload: { id: "settlement-1" } },
       { action: "endTrip", payload: { tripId: "trip-1" } },
-      { action: "getPersonalReport", payload: { tripId: "trip-1" } }
+      { action: "getPersonalReport", payload: { tripId: "trip-1" } },
+      { action: "deletePersonalReport", payload: { tripId: "trip-1" } }
     ]);
   } finally {
     if (originalWx === undefined) delete global.wx;
     else global.wx = originalWx;
   }
+});
+
+test("Mock 删除个人报告不删除共享历史行程", () => {
+  services.setMockScenario("active-ended");
+  assert.equal(services.getPersonalReport("trip-mountain").ok, true);
+  const result = services.deletePersonalReport("trip-mountain");
+  assert.deepEqual(result.data, { tripId: "trip-mountain", deleted: true });
+  assert.equal(services.listTrips().data.some((trip) => trip.id === "trip-mountain"), false);
+  assert.equal(services.getMockState().data.trips.some((trip) => trip.id === "trip-mountain"), true);
+  assert.equal(services.getPersonalReport("trip-mountain").code, "REPORT_DELETED");
+  services.resetMockData();
 });

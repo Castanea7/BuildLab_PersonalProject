@@ -1,6 +1,7 @@
 {
   "pages": [
     "pages/home/index",
+    "pages/about/index",
     "pages/debt/index",
     "pages/trips/index",
     "pages/trip/index",

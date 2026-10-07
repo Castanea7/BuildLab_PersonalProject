@@ -1,7 +1,7 @@
 const services = require("../../services/index");
 
 Page({
-  data: { preview: { transfers: [] }, settlements: [], currentUserId: "", cloudMode: false },
+  data: { preview: { transfers: [], billIds: [] }, settlements: [], currentUserId: "", cloudMode: false },
   async onLoad(options) {
     this.tripId = options.trip;
     if (services.isCloudMode()) {
@@ -15,12 +15,12 @@ Page({
   },
   async refresh() {
     const [preview, settlements] = await Promise.all([Promise.resolve(services.previewSettlement(this.tripId)), Promise.resolve(services.listSettlements(this.tripId))]);
-    this.setData({ preview: preview.ok ? preview.data : { transfers: [], balanceLabel: "这趟我还要补上", balanceText: "¥0.00", error: preview.error && preview.error.message }, settlements: settlements.data || [] });
+    this.setData({ preview: preview.ok ? preview.data : { transfers: [], billIds: [], balanceLabel: "这趟我还要补上", balanceText: "¥0.00", error: preview.error && preview.error.message }, settlements: settlements.data || [] });
   },
   createSettlement() {
     wx.showModal({
       title: "创建结账快照",
-      content: "创建后本轮账单会锁定，并进入下一阶段。确定继续吗？",
+      content: "创建后本轮账单会锁定，并进入下一阶段，操作不可逆。确定继续吗？",
       confirmText: "继续",
       cancelText: "取消",
       success: async ({ confirm }) => {
@@ -34,7 +34,7 @@ Page({
   confirmSettlement(event) {
     wx.showModal({
       title: "确认结清",
-      content: "确认已经完成这笔线下结算吗？确认后会记录为已结清。",
+      content: "确认已经完成这笔线下结算吗？确认后将记录为已结清，操作不可撤销。",
       confirmText: "确认结清",
       cancelText: "取消",
       success: async ({ confirm }) => {

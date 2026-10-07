@@ -80,6 +80,15 @@ Page({
   record() {
     wx.navigateTo({ url: "/pages/bills/index?trip=" + this.data.trip.id + "&action=create" });
   },
+  copyInvite() {
+    const shareInfo = this.data.shareInfo;
+    const code = shareInfo && shareInfo.code || this.data.trip && this.data.trip.inviteCode;
+    if (!code) return;
+    wx.setClipboardData({
+      data: code,
+      success: () => wx.showToast({ title: "邀请码已复制", icon: "none" })
+    });
+  },
   editBill(event) { wx.navigateTo({ url: "/pages/bills/index?trip=" + this.data.trip.id + "&action=edit&bill=" + event.currentTarget.dataset.id }); },
   async viewBill(event) {
     const result = await Promise.resolve(services.getBill(event.currentTarget.dataset.id));
@@ -103,8 +112,54 @@ Page({
       }
     });
   },
-  goSettlement() {
+  async goSettlement() {
+    const result = await Promise.resolve(services.previewSettlement(this.data.trip.id));
+    if (!result.ok) {
+      if (result.error && result.error.code === "NO_SETTLEMENT") {
+        wx.showModal({ title: "无需结账", content: "当前行程没有公共账单或待结算欠款，无需结账，可以直接结束行程。", showCancel: false, confirmText: "知道了" });
+        return;
+      }
+      wx.showToast({ title: result.error ? result.error.message : "暂时无法查看结账信息", icon: "none" });
+      return;
+    }
+    if (!result.data || !Array.isArray(result.data.billIds) || !result.data.billIds.length) {
+      wx.showModal({ title: "无需结账", content: "当前行程没有公共账单或待结算欠款，无需结账，可以直接结束行程。", showCancel: false, confirmText: "知道了" });
+      return;
+    }
     wx.navigateTo({ url: "/pages/settlement/index?trip=" + this.data.trip.id });
+  },
+  async getPendingSettlementNames() {
+    const result = await Promise.resolve(services.listSettlements(this.data.trip.id));
+    if (!result.ok || !Array.isArray(result.data)) return [];
+    const members = this.data.trip.members || [];
+    const names = result.data
+      .filter((settlement) => settlement.status !== "complete")
+      .reduce((pendingNames, settlement) => {
+        const confirmations = settlement.confirmations || {};
+        const currentNames = (settlement.memberIds || [])
+          .filter((memberId) => !confirmations[memberId])
+          .map((memberId) => {
+            const member = members.find((item) => item.id === memberId);
+            return member && member.name ? member.name : "同行成员";
+          });
+        return pendingNames.concat(currentNames);
+      }, []);
+    return Array.from(new Set(names));
+  },
+  async showEndTripBlockedMessage(error) {
+    const preview = await Promise.resolve(services.previewSettlement(this.data.trip.id));
+    const hasUnsettledDebt = preview.ok && preview.data && Array.isArray(preview.data.transfers) && preview.data.transfers.length;
+    if (hasUnsettledDebt || (error && /欠款|未结清/.test(error.message || ""))) {
+      wx.showModal({ title: "暂不能结束行程", content: "当前还有未结清的公共账单或欠款，请先完成结账后再结束行程。", showCancel: false, confirmText: "知道了" });
+      return;
+    }
+    const names = await this.getPendingSettlementNames();
+    wx.showModal({
+      title: "暂不能结束行程",
+      content: names.length ? `以下成员尚未确认结账：${names.join("、")}。请全部确认后再结束行程。` : "还有成员尚未确认结账，请全部确认后再结束行程。",
+      showCancel: false,
+      confirmText: "知道了"
+    });
   },
   endTrip() {
     wx.showModal({
@@ -115,7 +170,14 @@ Page({
       success: async ({ confirm }) => {
         if (!confirm) return;
         const result = await Promise.resolve(services.endTrip(this.data.trip.id));
-        if (!result.ok) { wx.showToast({ title: result.error.message, icon: "none" }); return; }
+        if (!result.ok) {
+          if (result.error && result.error.code === "TRIP_NOT_READY") {
+            await this.showEndTripBlockedMessage(result.error);
+            return;
+          }
+          wx.showToast({ title: result.error.message, icon: "none" });
+          return;
+        }
         this.setData({ trip: result.data });
         wx.showToast({ title: "行程已结束", icon: "none" });
       }

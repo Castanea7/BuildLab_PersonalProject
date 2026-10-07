@@ -1,7 +1,7 @@
 const services = require("../../services/index");
 
 Page({
-  onLoad() {
+  onShow() {
     this.refreshHome();
   },
   onShareAppMessage() {
@@ -22,7 +22,12 @@ Page({
       };
       const activeTrips = trips.filter((trip) => trip.status === "进行中").sort(sortByRecentOperation);
       const endedTrips = trips.filter((trip) => trip.status === "已结束").sort(sortByRecentOperation);
-      this.setData({ state: { activeTrips, endedTrips, scenarioId: "" }, currentTrip: activeTrips[0] || null, activeTrip: activeTrips[0] || null, endedTrip: endedTrips[0] || null, cloudMode: true, isDevelopment: services.isDevelopment(), scenarios: [] });
+      let activeTrip = activeTrips[0] || null;
+      if (activeTrip) {
+        const balanceResult = await Promise.resolve(services.previewSettlement(activeTrip.id));
+        if (balanceResult.ok && balanceResult.data) activeTrip = { ...activeTrip, ...balanceResult.data };
+      }
+      this.setData({ state: { activeTrips, endedTrips, scenarioId: "" }, currentTrip: activeTrip, activeTrip, endedTrip: endedTrips[0] || null, cloudMode: true, isDevelopment: services.isDevelopment(), scenarios: [] });
       return;
     }
     const state = services.getMockState().data;
@@ -38,10 +43,7 @@ Page({
       itemList: menuItems,
       success: ({ tapIndex }) => {
         if (tapIndex === 0) { this.openDebtHelp(); return; }
-        if (tapIndex === 1 && !isDevelopment) {
-          wx.showToast({ title: "同行小本 · 前端原型", icon: "none" });
-          return;
-        }
+        if (tapIndex === 1) { wx.navigateTo({ url: "/pages/about/index" }); return; }
         if (tapIndex === 2 && isDevelopment) { this.openMockSettings(); return; }
         if (tapIndex === 3 && isDevelopment) { this.switchServiceMode(); return; }
         if (tapIndex === 4 && isDevelopment) { this.resetMockData(); return; }

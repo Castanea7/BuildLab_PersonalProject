@@ -198,7 +198,7 @@ async function validateCreateBill(input, trip, userId) {
   if (usageDateMode !== "single" && usageEndDate <= usageStartDate) return fail("INVALID_USAGE_RANGE", "结束日期必须晚于开始日期");
   const usageDates = getUsageDates(usageDateMode, usageStartDate, usageEndDate, trip);
   const timingType = classifyTiming(paymentDate, trip.startDate, trip.endDate);
-  if (!usageDates || !usageDates.length || (timingType !== "normal" && usageStartDate === paymentDate && usageEndDate === paymentDate)) {
+  if (!usageDates || !usageDates.length) {
     return fail("INVALID_USAGE_DATES", "实际使用日期必须在行程范围内");
   }
 
@@ -303,10 +303,17 @@ async function listTrips() {
   const identity = await currentIdentity(true);
   if (identity.error) return identity.error;
   const memberships = await db.collection("trip_members").where({ userId: identity.user._id }).get();
+  let deletedReportTripIds = new Set();
+  try {
+    const deletedReports = await db.collection("personal_reports").where({ userId: identity.user._id, status: "deleted" }).get();
+    deletedReportTripIds = new Set((deletedReports.data || []).map((report) => report.tripId));
+  } catch (error) {
+    deletedReportTripIds = new Set();
+  }
   const trips = [];
   for (const membership of memberships.data || []) {
     const trip = await getTripDoc(membership.tripId);
-    if (trip) trips.push(await getTripView(trip, identity.user._id));
+    if (trip && !(trip.status === "ended" && deletedReportTripIds.has(trip._id))) trips.push(await getTripView(trip, identity.user._id));
   }
   trips.sort((left, right) => timestampValue(right.lastOperatedAt) - timestampValue(left.lastOperatedAt));
   return result(trips);
@@ -745,7 +752,7 @@ async function previewSettlement(input = {}) {
   if (trip.status === "ended") return fail("TRIP_ENDED", "行程已结束，不能预览清算");
   const current = await getCurrentStageSettlementData(trip);
   if (current.error) return current.error;
-  if (!current.data.bills.length) return fail("NO_SETTLEMENT", "当前阶段没有可结算的公共账单");
+  if (!current.data.bills.length || !current.data.transfers.length) return fail("NO_SETTLEMENT", "当前没有公共账单或待结算欠款，无需结账，可以直接结束行程");
   return result(formatSettlementView({ ...current.data, _id: "preview-" + trip.currentStage, tripId: trip._id, stage: trip.currentStage, status: "preview" }, identity.user._id, current.data.members));
 }
 
@@ -768,7 +775,7 @@ async function createSettlement(input = {}) {
     if (existing.data && existing.data.length) return rollbackTransaction(transaction, fail("SETTLEMENT_EXISTS", "当前阶段已经创建过结账快照"));
     const current = await getCurrentStageSettlementData(currentTrip, transaction);
     if (current.error) return rollbackTransaction(transaction, current.error);
-    if (!current.data.bills.length) return rollbackTransaction(transaction, fail("NO_SETTLEMENT", "当前阶段没有可结算的公共账单"));
+    if (!current.data.bills.length || !current.data.transfers.length) return rollbackTransaction(transaction, fail("NO_SETTLEMENT", "当前没有公共账单或待结算欠款，无需结账，可以直接结束行程"));
     const now = db.serverDate();
     const created = await transaction.collection("settlement_snapshots").add({ data: {
       tripId: trip._id,
@@ -869,9 +876,9 @@ async function endTrip(input = {}) {
     if (!currentTrip) return rollbackTransaction(transaction, fail("TRIP_NOT_FOUND", "行程不存在"));
     if (currentTrip.status === "ended") return rollbackTransaction(transaction, fail("TRIP_ENDED", "行程已经结束"));
     if (currentTrip.ownerId !== identity.user._id) return rollbackTransaction(transaction, fail("FORBIDDEN", "只有房主可以结束行程"));
-    const billsResponse = await transaction.collection("bills").where({ tripId: trip._id }).get();
-    const publicBills = (billsResponse.data || []).filter((bill) => bill.privacy === "public");
-    if (publicBills.some((bill) => bill.locked !== true)) return rollbackTransaction(transaction, fail("TRIP_NOT_READY", "还有未结账的公共账单"));
+    const currentSettlement = await getCurrentStageSettlementData(currentTrip, transaction);
+    if (currentSettlement.error) return rollbackTransaction(transaction, currentSettlement.error);
+    if (currentSettlement.data.transfers.length) return rollbackTransaction(transaction, fail("TRIP_NOT_READY", "还有未结清的公共账单或欠款，完成结账后才能结束行程"));
     const snapshots = await transaction.collection("settlement_snapshots").where({ tripId: trip._id }).get();
     if ((snapshots.data || []).some((snapshot) => snapshot.status !== "complete")) return rollbackTransaction(transaction, fail("TRIP_NOT_READY", "还有成员未确认结账"));
     const now = db.serverDate();
@@ -913,6 +920,15 @@ function allocateReportAmount(amountCents, dates) {
   return Object.fromEntries(dates.map((date, index) => [date, base + (index < remainder ? 1 : 0)]));
 }
 
+async function getPersonalReportRecord(tripId, userId) {
+  try {
+    const response = await db.collection("personal_reports").where({ tripId, userId }).limit(1).get();
+    return response.data && response.data.length ? response.data[0] : null;
+  } catch (error) {
+    return null;
+  }
+}
+
 async function getPersonalReport(input = {}) {
   const identity = await currentIdentity(true);
   if (identity.error) return identity.error;
@@ -921,6 +937,9 @@ async function getPersonalReport(input = {}) {
   if (trip.status !== "ended") return fail("REPORT_NOT_READY", "行程结束后才能查看正式报告");
   const membership = await getMembership(trip._id, identity.user._id);
   if (!membership) return fail("FORBIDDEN", "你不是该行程成员");
+  const existingReport = await getPersonalReportRecord(trip._id, identity.user._id);
+  if (existingReport && existingReport.status === "deleted") return fail("REPORT_DELETED", "当前用户的历史报告已删除");
+  if (existingReport && existingReport.status === "active" && existingReport.report) return result(existingReport.report);
   const billsResponse = await db.collection("bills").where({ tripId: trip._id }).get();
   const bills = billsResponse.data || [];
   const sharesResponse = bills.length ? await db.collection("bill_shares").where({ tripId: trip._id }).get() : { data: [] };
@@ -946,13 +965,13 @@ async function getPersonalReport(input = {}) {
     const allocation = allocateReportAmount(amountCents, usageDates);
     Object.entries(allocation).forEach(([date, value]) => { if (Object.prototype.hasOwnProperty.call(daily, date)) daily[date] += value; });
     const location = String(bill.location || "").trim();
-    if (location && (!locations[location] || String(locations[location].date) > String(usageDates[0] || bill.usageStartDate || bill.paymentDate))) locations[location] = { name: location, date: usageDates[0] || bill.usageStartDate || bill.paymentDate };
+    if (location && (!locations[location] || String(locations[location].date) > String(usageDates[0] || bill.usageStartDate || bill.paymentDate))) locations[location] = { name: location, date: usageDates[0] || bill.usageStartDate || bill.paymentDate, category };
     summaries.push({ id: bill._id, name: bill.name, amountCents, amountText: formatBillCents(amountCents), category });
   }
   summaries.sort((left, right) => left.id.localeCompare(right.id));
   const categoryList = Object.keys(categories).sort().map((category) => ({ category, amountCents: categories[category], amountText: formatBillCents(categories[category]), ratio: totalCents ? categories[category] / totalCents : 0 }));
   const locationList = Object.values(locations).sort((left, right) => String(left.date).localeCompare(String(right.date)) || left.name.localeCompare(right.name));
-  return result({
+  const report = {
     title: trip.name + " · 我的报告",
     lead: "旅程结束后，每位同行人只会看到属于自己的回忆与花销。",
     totalCents,
@@ -964,8 +983,34 @@ async function getPersonalReport(input = {}) {
     categories: categoryList,
     summaries,
     locations: locationList,
-    routeText: locationList.map((location) => location.name).join(" · ")
-  });
+    routeText: locationList.map((location) => location.name).join(" · "),
+    canDelete: true
+  };
+  const now = db.serverDate();
+  if (existingReport) {
+    await db.collection("personal_reports").doc(existingReport._id).update({ data: { status: "active", report, updatedAt: now } });
+  } else {
+    await db.collection("personal_reports").add({ data: { tripId: trip._id, userId: identity.user._id, status: "active", report, createdAt: now, updatedAt: now } });
+  }
+  return result(report);
+}
+
+async function deletePersonalReport(input = {}) {
+  const identity = await currentIdentity(true);
+  if (identity.error) return identity.error;
+  const trip = await getTripDoc(input.tripId);
+  if (!trip) return fail("TRIP_NOT_FOUND", "行程不存在");
+  if (trip.status !== "ended") return fail("REPORT_NOT_READY", "行程结束后才能删除个人报告");
+  const membership = await getMembership(trip._id, identity.user._id);
+  if (!membership) return fail("FORBIDDEN", "你不是该行程成员");
+  const existingReport = await getPersonalReportRecord(trip._id, identity.user._id);
+  const now = db.serverDate();
+  if (existingReport) {
+    await db.collection("personal_reports").doc(existingReport._id).update({ data: { status: "deleted", report: null, deletedAt: now, updatedAt: now } });
+  } else {
+    await db.collection("personal_reports").add({ data: { tripId: trip._id, userId: identity.user._id, status: "deleted", report: null, deletedAt: now, createdAt: now, updatedAt: now } });
+  }
+  return result({ tripId: trip._id, deleted: true });
 }
 
 exports.main = async (event = {}) => {
@@ -992,6 +1037,7 @@ exports.main = async (event = {}) => {
       case "confirmSettlement": return await confirmSettlement(payload);
       case "endTrip": return await endTrip(payload);
       case "getPersonalReport": return await getPersonalReport(payload);
+      case "deletePersonalReport": return await deletePersonalReport(payload);
       default: return fail("INVALID_ACTION", "不支持的云服务操作");
     }
   } catch (error) {

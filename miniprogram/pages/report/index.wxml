@@ -59,10 +59,21 @@
 
   <view class="report-card footprint-card">
     <view class="card-heading"><view class="flower-icon" aria-hidden="true"><view></view></view><text class="card-title">旅行足迹</text><text class="card-count">{{report.locations.length}} 个地点</text></view>
-    <view wx:if="{{report.locations.length}}" class="footprint-list">
-      <view class="footprint-row" wx:for="{{report.locations}}" wx:key="name">
-        <view class="footprint-rail"><view class="map-pin"><view></view></view></view>
-        <view class="footprint-info"><text class="footprint-name">{{item.name}}</text><text class="footprint-date">{{item.shortDate}}</text></view>
+    <view wx:if="{{report.footprintDays.length}}" class="footprint-stage">
+      <view class="footprint-list">
+        <canvas type="2d" id="footprint-route-canvas" class="footprint-route-canvas" aria-hidden="true"></canvas>
+        <view class="footprint-day" wx:for="{{report.footprintDays}}" wx:for-item="day" wx:key="date">
+          <view class="footprint-day-label"><text class="day-badge">{{day.dayLabel}}</text><text class="day-date">{{day.dateLabel}}</text></view>
+          <view class="footprint-route">
+            <view class="footprint-place {{place.sideClass}}" wx:for="{{day.items}}" wx:for-item="place" wx:key="name">
+              <view class="place-pin" style="left: {{place.pinLeft}}%"><view></view></view>
+              <view class="place-content">
+                <view class="place-copy"><text class="footprint-name">{{place.name}}</text></view>
+              </view>
+              <view class="footprint-art art-{{place.iconType}}" aria-hidden="true"><view></view><view></view><view></view></view>
+            </view>
+          </view>
+        </view>
       </view>
     </view>
     <text wx:else class="empty-copy">还没有地点记录</text>
@@ -80,5 +91,8 @@
     <text wx:else class="empty-copy">还没有参与过的账单</text>
   </view>
 
+  <view class="report-danger-actions" wx:if="{{report.canDelete}}">
+    <button class="delete-report-button" loading="{{deleting}}" disabled="{{deleting}}" bindtap="deleteReport">删除</button>
+  </view>
   <view class="report-footer"><view class="footer-line"></view><text>把每一笔花销，都留成旅行的记忆</text><view class="footer-line"></view></view>
 </view>

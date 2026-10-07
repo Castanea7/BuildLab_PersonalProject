@@ -13,6 +13,8 @@
 .bill-form { width: 100%; max-height: 88vh; box-sizing: border-box; overflow-y: auto; padding: 34rpx 36rpx 44rpx; border-radius: 34rpx 34rpx 0 0; background: #fffdf8; }
 .form-title { display: block; margin-bottom: 18rpx; color: #173149; font-size: 36rpx; font-weight: 900; }
 .bill-form .field-label { margin-top: 18rpx; }
+.bill-form picker { display: block; width: 100%; }
+.bill-form .date-field { display: flex; align-items: center; width: 100%; height: 96rpx; box-sizing: border-box; padding: 0 28rpx; border: 3rpx solid #cfeaff; border-radius: 26rpx; background: #fafdff; color: #173149; font-family: sans-serif; font-size: 30rpx; }
 .usage-head { display: flex; align-items: flex-end; justify-content: space-between; }
 .usage-head .field-label { margin-bottom: 0; }
 .usage-mode { margin-top: 18rpx; color: #173149; font-size: 23rpx; }
@@ -44,6 +46,16 @@
 .share-input-wrap > text { margin-left: 6rpx; color: #71839a; font-size: 21rpx; }
 .form-buttons { display: flex; gap: 18rpx; margin-top: 26rpx; }
 .form-buttons button { flex: 1; }
+.primary-button,
+.secondary-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 94rpx;
+  min-height: 94rpx;
+  padding: 0;
+  line-height: 1;
+}
 .form-error { display: flex; align-items: flex-start; gap: 10rpx; margin-top: 18rpx; color: #c65748; font-family: sans-serif; font-size: 24rpx; font-weight: 700; line-height: 1.5; }
 .warning-icon { position: relative; flex: 0 0 28rpx; width: 0; height: 0; margin-top: 3rpx; border-right: 14rpx solid transparent; border-bottom: 25rpx solid #c65748; border-left: 14rpx solid transparent; }
 .warning-mark { position: absolute; left: -2rpx; top: 7rpx; width: 4rpx; height: 8rpx; border-radius: 2rpx; background: #fffdf8; }

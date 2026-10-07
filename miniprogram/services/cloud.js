@@ -41,5 +41,6 @@ module.exports = {
   listSettlements(tripId) { return call("listSettlements", { tripId }); },
   confirmSettlement(id) { return call("confirmSettlement", { id }); },
   endTrip(tripId) { return call("endTrip", { tripId }); },
-  getPersonalReport(tripId) { return call("getPersonalReport", { tripId }); }
+  getPersonalReport(tripId) { return call("getPersonalReport", { tripId }); },
+  deletePersonalReport(tripId) { return call("deletePersonalReport", { tripId }); }
 };

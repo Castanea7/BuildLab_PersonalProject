@@ -11,3 +11,12 @@
 .form-heart::after { position: absolute; content: ""; width: 20rpx; height: 20rpx; border-radius: 50%; background: #ff846d; }
 .form-heart::before { left: -10rpx; }
 .form-heart::after { top: -10rpx; }
+.secondary-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 94rpx;
+  min-height: 94rpx;
+  padding: 0;
+  line-height: 1;
+}

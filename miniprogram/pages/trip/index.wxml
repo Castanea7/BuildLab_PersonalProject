@@ -7,7 +7,7 @@
     <view class="invite-block" wx:if="{{trip.status === '进行中'}}">
       <text class="invite-label">行程邀请码</text>
       <text class="invite-code">{{trip.inviteCode}}</text>
-      <text class="invite-hint">邀请码与本行程唯一对应</text>
+      <button class="invite-copy-link" bindtap="copyInvite"><view class="invite-copy-icon" aria-hidden="true"><view></view></view><text>复制邀请码</text></button>
     </view>
     <view class="members-block">
       <text class="members-title">同行成员 · {{trip.memberText}}</text>
@@ -20,7 +20,7 @@
       <view class="bills-title-row"><text class="members-title">账单列表</text><text class="bills-note">本轮仅展示</text></view>
       <view class="bill-row" wx:for="{{trip.bills}}" wx:key="id">
         <view class="bill-copy"><text class="bill-name">{{item.name}}</text><text class="member-status">总金额 {{item.amountText}}</text></view>
-        <view class="bill-side"><text class="bill-amount">个人承担 {{item.shareText}}</text><view class="bill-actions"><button wx:if="{{!item.locked && item.createdBy === currentUserId}}" data-id="{{item.id}}" catchtap="editBill">编辑</button><button wx:else data-id="{{item.id}}" catchtap="viewBill">查看</button><button wx:if="{{!item.locked && item.createdBy === currentUserId}}" data-id="{{item.id}}" catchtap="deleteBill">删除</button></view></view>
+        <view class="bill-side"><view class="bill-share"><text class="member-status bill-share-label">我花了</text><text class="bill-amount">{{item.shareText}}</text></view><view class="bill-actions"><button wx:if="{{!item.locked && item.createdBy === currentUserId}}" data-id="{{item.id}}" catchtap="editBill">编辑</button><button wx:else data-id="{{item.id}}" catchtap="viewBill">查看</button><button wx:if="{{!item.locked && item.createdBy === currentUserId}}" data-id="{{item.id}}" catchtap="deleteBill">删除</button></view></view>
       </view>
       <text class="empty-bills" wx:if="{{!trip.bills || !trip.bills.length}}">暂时还没有账单</text>
     </view>

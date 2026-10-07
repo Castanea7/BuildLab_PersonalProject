@@ -35,5 +35,6 @@ module.exports = {
   listSettlements(...args) { return dispatch(mock.listSettlements, cloud.listSettlements, args); },
   confirmSettlement(...args) { return dispatch(mock.confirmSettlement, cloud.confirmSettlement, args); },
   getPersonalReport(...args) { return dispatch(mock.getPersonalReport, cloud.getPersonalReport, args); },
+  deletePersonalReport(...args) { return dispatch(mock.deletePersonalReport, cloud.deletePersonalReport, args); },
   endTrip(...args) { return dispatch(mock.endTrip, cloud.endTrip, args); }
 };

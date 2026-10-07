@@ -10,10 +10,13 @@
 }
 .trip-loading-page { display: flex; flex-direction: column; }
 .trip-loading-copy { display: flex; flex: 1; flex-direction: column; justify-content: center; padding-bottom: 160rpx; }
-.invite-block { display: flex; align-items: center; margin-top: 34rpx; padding: 24rpx; border-radius: 22rpx; background: #fff3cf; }
-.invite-label { color: #71839a; font-size: 24rpx; }
-.invite-code { margin-left: auto; color: #173149; font-family: sans-serif; font-size: 42rpx; font-weight: 900; letter-spacing: 8rpx; }
-.invite-hint { margin-left: 18rpx; color: #9a7a32; font-size: 20rpx; }
+.invite-block { position: relative; display: flex; align-items: center; margin-top: 34rpx; padding: 24rpx; border-radius: 22rpx; background: #fff3cf; }
+.invite-label { color: #9a7a32; font-size: 24rpx; }
+.invite-code { position: absolute; top: 50%; left: 50%; margin: 0; color: #173149; font-family: sans-serif; font-size: 42rpx; font-weight: 900; letter-spacing: 8rpx; transform: translate(-50%, -50%); }
+.invite-copy-link { display: flex; flex: 0 0 auto; align-items: center; justify-content: center; height: 44rpx; margin-right: -8rpx; margin-left: auto; padding: 0; border: 0; border-radius: 0; background: transparent; color: #71839a; font-size: 20rpx; line-height: 1; }
+.invite-copy-link::after { border: 0; }
+.invite-copy-icon { position: relative; width: 20rpx; height: 20rpx; margin-right: 6rpx; border: 2rpx solid #71839a; border-radius: 4rpx; }
+.invite-copy-icon view { position: absolute; left: 6rpx; top: -6rpx; width: 16rpx; height: 16rpx; border: 2rpx solid #71839a; border-radius: 4rpx; background: #fff3cf; }
 .members-block { margin-top: 34rpx; padding-bottom: 24rpx; border-bottom: 2rpx dashed #cddce5; }
 .members-title { display: block; color: #173149; font-size: 28rpx; font-weight: 900; }
 .member-row { display: flex; align-items: center; justify-content: space-between; margin-top: 18rpx; }
@@ -25,9 +28,11 @@
 .bills-note { color: #9aabc0; font-size: 21rpx; }
 .bill-row { display: flex; align-items: flex-start; justify-content: space-between; margin-top: 18rpx; padding: 18rpx 0; border-top: 2rpx solid #f0eee8; }
 .bill-copy { display: flex; flex: 1; min-width: 0; flex-direction: column; gap: 6rpx; color: #173149; font-size: 25rpx; }
-.bill-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bill-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 800; }
 .bill-side { display: flex; flex: 0 0 auto; flex-direction: column; align-items: flex-end; margin-left: 18rpx; }
-.bill-amount { color: #173149; font-family: sans-serif; font-size: 26rpx; font-weight: 800; }
+.bill-share { display: flex; align-items: baseline; }
+.bill-share-label { margin-right: 10rpx; }
+.bill-amount { color: #173149; font-family: sans-serif; font-size: 25rpx; font-weight: 800; }
 .bill-actions { display: flex; gap: 12rpx; margin-top: 8rpx; }
 .bill-actions button { margin: 0; padding: 0; color: #4e8b74; background: transparent; font-size: 21rpx; line-height: 1.2; }
 .empty-bills { display: block; margin-top: 18rpx; color: #9aabc0; font-size: 24rpx; }
@@ -43,3 +48,13 @@
   font-size: 27rpx;
 }
 .balance { color: #173149; font-family: sans-serif; font-size: 48rpx; font-weight: 800; }
+.simple-page .paper-panel > .primary-button,
+.simple-page .paper-panel > .secondary-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 94rpx;
+  min-height: 94rpx;
+  padding: 0;
+  line-height: 1;
+}
